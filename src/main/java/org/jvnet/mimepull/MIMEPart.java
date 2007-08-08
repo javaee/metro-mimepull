@@ -51,7 +51,7 @@ import java.io.RandomAccessFile;
  */
 public class MIMEPart {
 
-    private Chunk head, tail;
+    private Queue queue;
 
 
 
@@ -82,7 +82,14 @@ public class MIMEPart {
      * @return data for the part's content
      */
     public InputStream read() {
-        return null;
+        if(queue==null)
+            queue = new BufferdQueueImpl();
+        if (queue instanceof BufferedQueue) {
+            BufferedQueue bq = (BufferedQueue) queue;
+            return new QueueInputStream(bq.copy());
+        } else {
+            throw new IllegalStateException();
+        }
     }
 
     /**
@@ -98,7 +105,12 @@ public class MIMEPart {
      * @return data for the part's content
      */
     public InputStream readOnce() {
-        return null;
+        if(queue==null) {
+            queue = new UnbufferedQueueImpl();
+            return new QueueInputStream(queue);
+        }
+
+        return read();
     }
 
     /**
@@ -117,6 +129,7 @@ public class MIMEPart {
     private int numChunks=0;
 
     void addBody(ByteArrayBuffer buf) {
+        if(queue!=null)
         Data d;
         if(dataFile!=null)
             d = new FileData(dataFile,..);
