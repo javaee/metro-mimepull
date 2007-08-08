@@ -51,6 +51,10 @@ import java.io.RandomAccessFile;
  */
 public class MIMEPart {
 
+    private Queue queue;
+
+
+
     private InternetHeaders headers;
     private String contentId;
     private volatile boolean parsed;
@@ -59,6 +63,7 @@ public class MIMEPart {
     // only one is not null ByteArrayList or RandomAccessFile
     private ByteArrayBufferList buf;
     private RandomAccessFile file;
+    private DataFile dataFile;
 
     MIMEPart(MIMEConfig config) {
         this.config = config;
@@ -77,7 +82,14 @@ public class MIMEPart {
      * @return data for the part's content
      */
     public InputStream read() {
-        return null;
+        if(queue==null)
+            queue = new BufferdQueueImpl();
+        if (queue instanceof BufferedQueue) {
+            BufferedQueue bq = (BufferedQueue) queue;
+            return new QueueInputStream(bq.copy());
+        } else {
+            throw new IllegalStateException();
+        }
     }
 
     /**
@@ -93,7 +105,12 @@ public class MIMEPart {
      * @return data for the part's content
      */
     public InputStream readOnce() {
-        return null;
+        if(queue==null) {
+            queue = new UnbufferedQueueImpl();
+            return new QueueInputStream(queue);
+        }
+
+        return read();
     }
 
     /**
@@ -109,7 +126,27 @@ public class MIMEPart {
         this.headers = headers;
     }
 
+    private int numChunks=0;
+
     void addBody(ByteArrayBuffer buf) {
+        if(queue!=null)
+        Data d;
+        if(dataFile!=null)
+            d = new FileData(dataFile,..);
+        else
+            d = new MemoryData(buf);
+            
+        if(tail!=null) {
+            tail = new Chunk(tail, d);
+        } else {
+            head = tail = new Chunk(null, d);
+        }
+        numChunks++;
+        if(numChunks==config.threshold && head!=null) {
+            dataFile = new DataFile(...);
+            for(Chunk c=head;c!=null;c=c.next)
+                c.data = c.data.toFile(f);
+        }
     }
     
     void doneParsing() {
