@@ -43,6 +43,7 @@ public class MIMEConfig {
     final boolean parseAll;
     final int firstChunkSize;
     final int nextChunkSize;
+    final int threshold;
 
     public MIMEConfig(boolean parseAll, int firstChunkSize, int nextChunkSize ) {
         this.parseAll = parseAll;
