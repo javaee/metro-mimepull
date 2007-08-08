@@ -39,6 +39,9 @@ import java.io.InputStream;
 import java.util.*;
 
 /**
+ * Represents MIME message. MIME message parsing is done lazily using a
+ * pull parser.
+ *
  * @author Jitendra Kotamraju
  */
 public class MIMEMessage {
@@ -61,14 +64,16 @@ public class MIMEMessage {
     }
 
     /**
-     *
+     * TODO
      * @return
      */
     public List<MIMEPart> getAttachments() {
+        if (!parsed) {
+        }
         return partsList;
     }
 
-        /**
+    /**
      * Creates nth attachment lazily. It doesn't validate
      * if the message has so many attachments. To
      * do the validation, the message needs to be parsed.
@@ -112,7 +117,6 @@ public class MIMEMessage {
         }
         return part;
     }
-
 
 
     /**

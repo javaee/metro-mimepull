@@ -42,6 +42,23 @@ import java.io.IOException;
 import java.util.*;
 
 /**
+ * Pull parser for the MIME messages. Applications can use pull API to continue
+ * the parsing MIME messages lazily.
+ *
+ * <pre>
+ * for e.g.:
+ * <p>
+ *
+ * MIMEParser parser = ...
+ * Iterator<MIMEEvent> it = parser.iterator();
+ * while(it.hasNext()) {
+ *   MIMEEvent event = it.next();
+ *   ...
+ * }
+ * </pre>
+ *
+ * Original parsing code is taken from java mail's MIME parser.
+ *
  * @author Jitendra Kotamraju
  */
 class MIMEParser implements Iterable<MIMEEvent> {
@@ -81,6 +98,12 @@ class MIMEParser implements Iterable<MIMEEvent> {
         this.config = config;
     }
 
+    /**
+     * Returns iterator for the parsing events. Use the iterator to advance
+     * the parsing.
+     *
+     * @return iterator for parsing events
+     */
     public Iterator<MIMEEvent> iterator() {
         return new MIMEEventIterator();
     }
@@ -235,7 +258,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
                         buf.write(b);
                 }
                 // Reached our content chunk size. Still in the same part.
-                if (buf.size() > currentSize-5) {
+                if (buf.size() >= currentSize) {
                     state = STATE.BODY;
                     break;
                 }

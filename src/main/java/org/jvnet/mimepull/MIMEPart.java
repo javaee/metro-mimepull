@@ -40,6 +40,13 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 /**
+ * Represents an attachment part in a MIME message. MIME message parsing is done
+ * lazily using a pull parser, so the part may not have all the data. {@link #read}
+ * and {@link #readOnce} may trigger the actual parsing the message. In fact,
+ * parsing of an attachment part may be triggered by calling {@link #read} methods
+ * on some other attachemnt parts. All this happens behind the scenes so the
+ * application developer need not worry about these details.
+ *
  * @author Jitendra Kotamraju
  */
 public class MIMEPart {
@@ -62,14 +69,38 @@ public class MIMEPart {
         this.contentId = contentId;
     }
 
+    /**
+     * Can get the attachment part's content multiple times. That means
+     * the full content needs to be there in memory or on the file system.
+     *
+     * TODO: can it called multiple times concurrently
+     * @return data for the part's content
+     */
     public InputStream read() {
         return null;
     }
 
+    /**
+     * Can get the attachment part's content only once. The content
+     * will be lost after the method. Content data is not be stored
+     * on the file system or is not kept in the memory for the
+     * following case:
+     *   - Attachement parts contents are accessed sequentially
+     *
+     * In general, take advantage of this when the data is used only
+     * once.
+     *
+     * @return data for the part's content
+     */
     public InputStream readOnce() {
         return null;
     }
 
+    /**
+     * Returns Content-ID MIME header for this attachment part
+     *
+     * @return Content-ID of the part
+     */
     public String getContentId() {
         return contentId;
     }
