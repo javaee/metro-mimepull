@@ -49,6 +49,7 @@ public class MIMEConfig {
         this.parseAll = parseAll;
         this.firstChunkSize = firstChunkSize;
         this.nextChunkSize = nextChunkSize;
+        this.threshold = 8192;
     }
 
 }
