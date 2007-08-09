@@ -53,7 +53,6 @@ public class MIMEMessage {
     private final Iterator<MIMEEvent> it;
     private boolean parsed = false;
 
-
     public MIMEMessage(InputStream in, String boundary, MIMEConfig config) {
         this.config = config;
         parser = new MIMEParser(in, boundary, config);
@@ -123,75 +122,74 @@ public class MIMEMessage {
      *
      */
     public void parseAll() {
-        MIMEPart currentPart = null;
-        int currentIndex = 0;
+        while(makeProgress())
+            ;
+    }
 
-        while(it.hasNext()) {
-            MIMEEvent event = it.next();
+    private MIMEPart currentPart = null;
+    private int currentIndex = 0;
 
-            switch(event.getEventType()) {
-                case START_MESSAGE :
-                    break;
+    /**
+     *
+     * @return
+     *      false if the parsing is completed.
+     */
+    public boolean makeProgress() {
+        if(!it.hasNext())   return false;
 
-                case START_PART :
-                    break;
+        MIMEEvent event = it.next();
 
-                case HEADERS :
-                    MIMEEvent.Headers headers = (MIMEEvent.Headers)event;
-                    InternetHeaders ih = headers.getHeaders();
-                    String [] cids = ih.getHeader("content-id");
-                    String cid = (cids != null) ? cids[0] : partsList.size()+"";
-                    if (cid.length() > 2 && cid.charAt(0)=='<') {
-                        cid = cid.substring(1,cid.length()-1);
-                    }
-                    MIMEPart listPart = (currentIndex < partsList.size()) ? partsList.get(currentIndex) : null;
-                    MIMEPart mapPart = partsMap.get(cid);
-                    if (listPart == null && mapPart == null) {
-                        currentPart = getPart(cid);
-                        partsList.add(currentIndex, currentPart);
-                    } else if (listPart == null && mapPart != null) {
-                        currentPart = mapPart;
-                        partsList.add(currentIndex, mapPart);
-                    } else if (listPart != null && mapPart == null) {
-                        currentPart = listPart;
-                        currentPart.setContentId(cid);
-                        partsMap.put(cid, currentPart);
-                    } else if (listPart != mapPart) {
-                        throw new MIMEParsingException("Created two different attachments using Content-ID and index");
-                    }
-                    currentPart.setHeaders(ih);
-                    break;
+        switch(event.getEventType()) {
+            case START_MESSAGE :
+                break;
 
-                case CONTENT :
-                    MIMEEvent.Content content = (MIMEEvent.Content)event;
-                    ByteArrayBuffer buf = content.getData();
-                    currentPart.addBody(buf);
-                    break;
+            case START_PART :
+                break;
 
-                case END_PART :
-                    currentPart.doneParsing();
-                    ++currentIndex;
-                    break;
+            case HEADERS :
+                MIMEEvent.Headers headers = (MIMEEvent.Headers)event;
+                InternetHeaders ih = headers.getHeaders();
+                String [] cids = ih.getHeader("content-id");
+                String cid = (cids != null) ? cids[0] : partsList.size()+"";
+                if (cid.length() > 2 && cid.charAt(0)=='<') {
+                    cid = cid.substring(1,cid.length()-1);
+                }
+                MIMEPart listPart = (currentIndex < partsList.size()) ? partsList.get(currentIndex) : null;
+                MIMEPart mapPart = partsMap.get(cid);
+                if (listPart == null && mapPart == null) {
+                    currentPart = getPart(cid);
+                    partsList.add(currentIndex, currentPart);
+                } else if (listPart == null && mapPart != null) {
+                    currentPart = mapPart;
+                    partsList.add(currentIndex, mapPart);
+                } else if (listPart != null && mapPart == null) {
+                    currentPart = listPart;
+                    currentPart.setContentId(cid);
+                    partsMap.put(cid, currentPart);
+                } else if (listPart != mapPart) {
+                    throw new MIMEParsingException("Created two different attachments using Content-ID and index");
+                }
+                currentPart.setHeaders(ih);
+                break;
 
-                case END_MESSAGE :
-                    parsed = true;
-                    break;
+            case CONTENT :
+                MIMEEvent.Content content = (MIMEEvent.Content)event;
+                ByteArrayBuffer buf = content.getData();
+                currentPart.addBody(buf);
+                break;
 
-                default :
-                    throw new MIMEParsingException("Unknown Parser state = "+event.getEventType());
-            }
+            case END_PART :
+                currentPart.doneParsing();
+                ++currentIndex;
+                break;
+
+            case END_MESSAGE :
+                parsed = true;
+                break;
+
+            default :
+                throw new MIMEParsingException("Unknown Parser state = "+event.getEventType());
         }
-    }
-
-    void readMinimum(String contentId) {
-
-    }
-
-    void readHeaders(String contentId) {
-
-    }
-
-    void readNextBody(String contentId) {
-
+        return true;
     }
 }

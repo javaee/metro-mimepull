@@ -1,20 +1,36 @@
 package org.jvnet.mimepull;
 
 import java.io.RandomAccessFile;
+import java.io.File;
 
 /**
  * @author Kohsuke Kawaguchi
  */
 class DataFile {
-    private final RandomAccessFile file;
-    private final long pointer;
+    private File file;
+    private RandomAccessFile raf;
+    private long pointer;
+
+
+    public DataFile(File file) {
+        this.file = file;
+        raf = new RandomAccessFile(file,...);
+        pointer=0;
+    }
 
     public void read( long pointer, byte[] buf, int start, int length ) {
         if(this.pointer!=pointer) {
-            file.seek(pointer);
+            raf.seek(pointer);
             this.pointer = pointer;
         }
-        file.read(buf,start,length);
+        raf.read(buf,start,length);
         pointer+=length;
+    }
+
+    public void renameTo(File f) {
+        raf.close();
+        file.renameTo(f);
+        raf = new RandomAccessFile(f);
+        pointer = 0;
     }
 }

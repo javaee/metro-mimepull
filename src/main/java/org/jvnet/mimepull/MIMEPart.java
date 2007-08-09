@@ -38,6 +38,7 @@ package org.jvnet.mimepull;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.io.File;
 
 /**
  * Represents an attachment part in a MIME message. MIME message parsing is done
@@ -51,26 +52,33 @@ import java.io.RandomAccessFile;
  */
 public class MIMEPart {
 
-    private Chunk head, tail;
+    Chunk head, tail;
 
+    /**
+     * If the part is stored in a file, non-null.
+     *
+     * If head is non-null, then we have the whole part in the file,
+     * otherwise the file is only partial.
+     */
+    DataFile dataFile;
 
 
     private InternetHeaders headers;
     private String contentId;
     private volatile boolean parsed;
-    private final MIMEConfig config;
+    private final MIMEMessage msg;
 
     // only one is not null ByteArrayList or RandomAccessFile
     private ByteArrayBufferList buf;
     private RandomAccessFile file;
-    private DataFile dataFile;
+    DataFile dataFile;
 
-    MIMEPart(MIMEConfig config) {
-        this.config = config;
+    MIMEPart(MIMEMessage msg) {
+        this.msg = msg;
     }
 
-    MIMEPart(MIMEConfig config, String contentId) {
-        this(config);
+    MIMEPart(MIMEMessage msg, String contentId) {
+        this(msg);
         this.contentId = contentId;
     }
 
@@ -82,7 +90,14 @@ public class MIMEPart {
      * @return data for the part's content
      */
     public InputStream read() {
-        return null;
+        while(tail==null)
+            if(!msg.makeProgress())
+                throw new IllegalStateException("No such content ID: "+contentId);
+
+        if(head==null)
+            throw new IllegalStateException("already read.");
+
+        return new ChunkInputStream(head);
     }
 
     /**
@@ -98,7 +113,25 @@ public class MIMEPart {
      * @return data for the part's content
      */
     public InputStream readOnce() {
-        return null;
+        InputStream in = read();
+        head = null;
+        return in;
+    }
+
+    public void moveTo(File f) {
+        if(tail==null) {
+            dataFile = new DataFile(f);
+            tail = head = new Chunk(new FileData(dataFile));
+        } else {
+            if(head==null)
+                throw new IllegalStateException("already read once");
+
+            if(dataFile!=null) {
+                dataFile.renameTo(f);
+            } else {
+                
+            }
+        }
     }
 
     /**
@@ -114,25 +147,11 @@ public class MIMEPart {
         this.headers = headers;
     }
 
-    private int numChunks=0;
-
     void addBody(ByteArrayBuffer buf) {
-        Data d;
-        if(dataFile!=null)
-            d = new FileData(dataFile,..);
-        else
-            d = new MemoryData(buf);
-            
         if(tail!=null) {
-            tail = new Chunk(tail, d);
+            tail = tail.createNext(head,msg);
         } else {
-            head = tail = new Chunk(null, d);
-        }
-        numChunks++;
-        if(numChunks==config.threshold && head!=null) {
-            dataFile = new DataFile(...);
-            for(Chunk c=head;c!=null;c=c.next)
-                c.data = c.data.toFile(f);
+            head = tail = new Chunk(new MemoryData(msg));
         }
     }
     

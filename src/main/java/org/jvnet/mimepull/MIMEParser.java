@@ -62,7 +62,6 @@ import java.util.*;
  * @author Jitendra Kotamraju
  */
 class MIMEParser implements Iterable<MIMEEvent> {
-
     private enum STATE {START_MESSAGE, SKIP_PREAMBLE, START_PART, HEADERS, BODY, END_PART, END_MESSAGE}
     private STATE state = STATE.START_MESSAGE;
 
