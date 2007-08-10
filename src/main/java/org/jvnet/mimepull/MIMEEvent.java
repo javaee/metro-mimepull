@@ -35,6 +35,8 @@
  */
 package org.jvnet.mimepull;
 
+import java.nio.ByteBuffer;
+
 /**
  * @author Jitendra Kotamraju
  */
@@ -101,9 +103,9 @@ abstract class MIMEEvent {
     }
 
     static final class Content extends MIMEEvent {
-        private final ByteArrayBuffer buf;
+        private final ByteBuffer buf;
 
-        Content(ByteArrayBuffer buf) {
+        Content(ByteBuffer buf) {
             this.buf = buf;
         }
 
@@ -111,7 +113,7 @@ abstract class MIMEEvent {
             return EVENT_TYPE.CONTENT;
         }
 
-        ByteArrayBuffer getData() {
+        ByteBuffer getData() {
             return buf;
         }
     }

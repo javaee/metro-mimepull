@@ -37,6 +37,7 @@ package org.jvnet.mimepull;
 
 import java.io.InputStream;
 import java.util.*;
+import java.nio.ByteBuffer;
 
 /**
  * Represents MIME message. MIME message parsing is done lazily using a
@@ -174,7 +175,7 @@ public class MIMEMessage {
 
             case CONTENT :
                 MIMEEvent.Content content = (MIMEEvent.Content)event;
-                ByteArrayBuffer buf = content.getData();
+                ByteBuffer buf = content.getData();
                 currentPart.addBody(buf);
                 break;
 

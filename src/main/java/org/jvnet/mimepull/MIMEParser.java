@@ -36,10 +36,9 @@
 package org.jvnet.mimepull;
 
 import java.io.InputStream;
-import java.io.ByteArrayInputStream;
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.nio.ByteBuffer;
 
 /**
  * Pull parser for the MIME messages. Applications can use pull API to continue
@@ -62,6 +61,7 @@ import java.util.*;
  * @author Jitendra Kotamraju
  */
 class MIMEParser implements Iterable<MIMEEvent> {
+    private static final int NO_LWSP = 1000;
     private enum STATE {START_MESSAGE, SKIP_PREAMBLE, START_PART, HEADERS, BODY, END_PART, END_MESSAGE}
     private STATE state = STATE.START_MESSAGE;
 
@@ -70,6 +70,9 @@ class MIMEParser implements Iterable<MIMEEvent> {
     private final byte[] bndbytes;
     private final int bl;
     private final MIMEConfig config;
+    private final int[] bcs = new int[128]; // BnM algo: Bad Character Shift table
+    private final int[] gss;                // BnM algo : Good Suffix Shift table
+
     /**
      * Have we parsed the data from our InputStream yet?
      */
@@ -81,20 +84,27 @@ class MIMEParser implements Iterable<MIMEEvent> {
      */
     private boolean done = false;
 
-
-    private boolean bol = true;    // beginning of line flag
-    // the two possible end of line characters
-    private int eol1 = -1, eol2 = -1;
-
-    private int currentSize;
+    private boolean eof;
+    private final int capacity;
+    private byte[] buf;
+    private int len;
 
     MIMEParser(InputStream in, String boundary, MIMEConfig config) {
+        /*
         this.in = (in instanceof ByteArrayInputStream || in instanceof BufferedInputStream)
                 ? in :  new BufferedInputStream(in);
+                */
+        this.in = in;
         this.boundary = boundary;
         this.bndbytes = getBytes(boundary);
         bl = bndbytes.length;
         this.config = config;
+        gss = new int[bl];
+        compileBoundaryPattern();
+
+        // \r\n + boundary + "--\r\n" + lots of LWSP
+        capacity = config.threshold+2+bl+4+NO_LWSP;
+        createBuf();
     }
 
     /**
@@ -129,12 +139,10 @@ class MIMEParser implements Iterable<MIMEEvent> {
                 case HEADERS :
                     InternetHeaders ih = readHeaders();
                     state = STATE.BODY;
-                    currentSize = config.firstChunkSize;
                     return new MIMEEvent.Headers(ih);
 
                 case BODY :
-                    ByteArrayBuffer buf = readBody();
-                    currentSize = config.nextChunkSize;
+                    ByteBuffer buf = readBody();
                     return new MIMEEvent.Content(buf);
 
                 case END_PART :
@@ -170,102 +178,87 @@ class MIMEParser implements Iterable<MIMEEvent> {
 
     /**
      * Reads and saves the part of the current attachment part's content.
+     * At the end of this method, buf should have the remaining data
+     * at index 0.
      *
      * @return a chunk of the part's content
+     *
      */
-    private ByteArrayBuffer readBody() {
-        int b;
-        try {
-            if (!in.markSupported())
-		        throw new MIMEParsingException("Stream doesn't support mark");
-            ByteArrayBuffer buf = new ByteArrayBuffer(currentSize);
-            for (; ;) {
-                if (bol) {
-                    /*
-                    * At the beginning of a line, check whether the
-                    * next line is a boundary.
-                    */
-                    int i;
-                    in.mark(bl + 4 + 1000); // bnd + "--\r\n" + lots of LWSP
-                    // read bytes, matching against the boundary
-                    for (i = 0; i < bl; i++)
-                        if (in.read() != bndbytes[i])
-                            break;
-                    if (i == bl) {
-                        // matched the boundary, check for last boundary
-                        int b2 = in.read();
-                        if (b2 == '-') {
-                            if (in.read() == '-') {
-                                done = true;
-                                state = STATE.END_PART;
-                                break;    // ignore trailing text
-                            }
-                        }
-                        // skip linear whitespace
-                        while (b2 == ' ' || b2 == '\t')
-                            b2 = in.read();
-                        // check for end of line
-                        if (b2 == '\n') {
-                            state = STATE.END_PART;
-                            break;    // got it!  break out of the loop
-                        }
-                        if (b2 == '\r') {
-                            in.mark(1);
-                            if (in.read() != '\n')
-                                in.reset();
-                            state = STATE.END_PART;
-                            break;    // got it!  break out of the loop
-                        }
-                    }
-                    // failed to match, reset and proceed normally
-                    in.reset();
-
-                    // if this is not the first line, write out the
-                    // end of line characters from the previous line
-                    if (buf != null && eol1 != -1) {
-                        buf.write(eol1);
-                        if (eol2 != -1)
-                            buf.write(eol2);
-                        eol1 = eol2 = -1;
-                    }
-                }
-
-                // read the next byte
-                if ((b = in.read()) < 0) {
-                    state = STATE.END_PART;
-                    done = true;
-                    break;
-                }
-
-                /*
-                * If we're at the end of the line, save the eol characters
-                * to be written out before the beginning of the next line.
-                */
-                if (b == '\r' || b == '\n') {
-                    bol = true;
-                    eol1 = b;
-                    if (b == '\r') {
-                        in.mark(1);
-                        if ((b = in.read()) == '\n')
-                            eol2 = b;
-                        else
-                            in.reset();
-                    }
-                } else {
-                    bol = false;
-                    if (buf != null)
-                        buf.write(b);
-                }
-                // Reached our content chunk size. Still in the same part.
-                if (buf.size() >= currentSize) {
-                    state = STATE.BODY;
-                    break;
-                }
-            }
-            return buf;
-        } catch (IOException ioex) {
-            throw new MIMEParsingException("IO Error", ioex);
+    private ByteBuffer readBody() {
+        if (!eof) {
+            fillBuf();
         }
+        int start = match(buf, 0, len);     // matches boundary
+        if (start == -1) {
+            // No boundary is found
+            assert eof || len >= config.threshold;
+            int chunkSize = eof ? len : config.threshold;
+            if (eof) {
+                done = true;
+                state = STATE.END_PART;
+            }
+            return adjustBuf(chunkSize, len-chunkSize);
+        }
+        // Found boundary
+        int chunkLen = start;
+        if (start > 0 && (buf[start-1] == '\n' || buf[start-1] =='\r')) {
+            --chunkLen;
+            if (buf[start-1] == '\n' && start >1 && buf[start-2] == '\r') {
+                --chunkLen;
+            }
+        } else {
+           return adjustBuf(start+1, len-start+1);  // boundary is not at beginning of a line
+        }
+
+        if (start+bl+1 < len && buf[start+bl] == '-' && buf[start+bl+1] == '-') {
+            state = STATE.END_PART;
+            done = true;
+            return adjustBuf(chunkLen, 0);
+        }
+
+        // Consider all the whitespace boundary+whitespace+"\r\n"
+        int lwsp = 0;
+        for(int i=start+bl; i < len && (buf[i] == ' ' || buf[i] == '\t'); i++) {
+            ++lwsp;
+        }
+        // Check for \n or \r\n
+        if (start+bl+lwsp < len && (buf[start+bl+lwsp] == '\n' || buf[start+bl+lwsp] == '\r') ) {
+            if (buf[start+bl+lwsp] == '\n') {
+                state = STATE.END_PART;
+                return adjustBuf(chunkLen, len-start-bl-lwsp);
+            } else if (start+bl+lwsp+1 < len && buf[start+bl+lwsp+1] == '\n') {
+                state = STATE.END_PART;
+                return adjustBuf(chunkLen, len-start-bl-lwsp-1);
+            }
+        }
+        return adjustBuf(start+1, len-start+1);
+    }
+
+    /**
+     * Returns a chunk from the original buffer. A new buffer is
+     * created with the remaining bytes.
+     *
+     * @param chunkSize create a chunk with these many bytes
+     * @param remaining bytes from the end of the buffer that need to be copied to
+     *        the beginning of the new buffer
+     * @return chunk
+     */
+    private ByteBuffer adjustBuf(int chunkSize, int remaining) {
+        assert buf != null;
+        assert chunkSize > 0;
+        assert remaining >= 0;
+
+        byte[] temp = buf;
+        // create a new buf and adjust it without this chunk
+        createBuf();
+        System.arraycopy(temp, len-remaining, buf, 0, remaining);
+        len = remaining;
+
+        return ByteBuffer.wrap(temp, 0, chunkSize);
+    }
+
+    private void createBuf() {
+        buf = new byte[capacity];
     }
 
     /**
@@ -308,6 +301,103 @@ class MIMEParser implements Iterable<MIMEEvent> {
         for (int i = 0; i < size;)
             bytes[i] = (byte) chars[i++];
         return bytes;
+    }
+
+        /**
+     * Boyer-Moore search method. Copied from java.util.regex.Pattern.java
+     *
+     * Pre calculates arrays needed to generate the bad character
+     * shift and the good suffix shift. Only the last seven bits
+     * are used to see if chars match; This keeps the tables small
+     * and covers the heavily used ASCII range, but occasionally
+     * results in an aliased match for the bad character shift.
+     */
+    private void compileBoundaryPattern() {
+        int i, j;
+
+        // Precalculate part of the bad character shift
+        // It is a table for where in the pattern each
+        // lower 7-bit value occurs
+        for (i = 0; i < bndbytes.length; i++) {
+            bcs[bndbytes[i]&0x7F] = i + 1;
+        }
+
+        // Precalculate the good suffix shift
+        // i is the shift amount being considered
+NEXT:   for (i = bndbytes.length; i > 0; i--) {
+            // j is the beginning index of suffix being considered
+            for (j = bndbytes.length - 1; j >= i; j--) {
+                // Testing for good suffix
+                if (bndbytes[j] == bndbytes[j-i]) {
+                    // src[j..len] is a good suffix
+                    gss[j-1] = i;
+                } else {
+                    // No match. The array has already been
+                    // filled up with correct values before.
+                    continue NEXT;
+                }
+            }
+            // This fills up the remaining of optoSft
+            // any suffix can not have larger shift amount
+            // then its sub-suffix. Why???
+            while (j > 0) {
+                gss[--j] = i;
+            }
+        }
+        // Set the guard value because of unicode compression
+        gss[bndbytes.length -1] = 1;
+    }
+
+    /**
+     * Finds the boundary in the given buffer using Boyer-Moore algo.
+     * Copied from java.util.regex.Pattern.java
+     *
+     * @param mybuf boundary to be searched in this mybuf
+     * @param off start index in mybuf
+     * @param len number of bytes in mybuf
+     *
+     * @return -1 if there is no match or index where the match starts
+     */
+    private int match(byte[] mybuf, int off, int len) {
+        int last = len - bndbytes.length;
+
+        // Loop over all possible match positions in text
+NEXT:   while (off <= last) {
+            // Loop over pattern from right to left
+            for (int j = bndbytes.length - 1; j >= 0; j--) {
+                byte ch = mybuf[off+j];
+                if (ch != bndbytes[j]) {
+                    // Shift search to the right by the maximum of the
+                    // bad character shift and the good suffix shift
+                    off += Math.max(j + 1 - bcs[ch&0x7F], gss[j]);
+                    continue NEXT;
+                }
+            }
+            // Entire pattern matched starting at off
+            return off;
+        }
+        return -1;
+    }
+
+    /**
+     * Fills the remaining buf to the full capacity
+     */
+    private void fillBuf() {
+        assert !eof;
+        while(len < buf.length) {
+            int read;
+            try {
+                read = in.read(buf, len, buf.length-len);
+            } catch(IOException ioe) {
+                throw new MIMEParsingException(ioe);
+            }
+            if (read == -1) {
+                eof = true;
+                break;
+            } else {
+                len += read;
+            }
+        }
     }
     
 }

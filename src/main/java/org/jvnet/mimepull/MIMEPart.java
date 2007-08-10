@@ -39,6 +39,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.File;
+import java.nio.ByteBuffer;
 
 /**
  * Represents an attachment part in a MIME message. MIME message parsing is done
@@ -147,12 +148,14 @@ public class MIMEPart {
         this.headers = headers;
     }
 
-    void addBody(ByteArrayBuffer buf) {
+    void addBody(ByteBuffer buf) {
+        /*
         if(tail!=null) {
             tail = tail.createNext(head,msg);
         } else {
 //            head = tail = new Chunk(new MemoryData(msg));
         }
+        */
     }
     
     void doneParsing() {
