@@ -37,6 +37,7 @@ package org.jvnet.mimepull;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.io.PushbackInputStream;
 import java.util.*;
 import java.nio.ByteBuffer;
 
@@ -104,7 +105,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
 
         // \r\n + boundary + "--\r\n" + lots of LWSP
         capacity = config.threshold+2+bl+4+NO_LWSP;
-        createBuf();
+        createBuf(capacity);
     }
 
     /**
@@ -173,7 +174,10 @@ class MIMEParser implements Iterable<MIMEEvent> {
      * @return headers for the current part
      */
     private InternetHeaders readHeaders() {
-        return new InternetHeaders(in);
+        if (!eof) {
+            fillBuf();
+        }
+        return new InternetHeaders(new LineInputStream());
     }
 
     /**
@@ -225,10 +229,10 @@ class MIMEParser implements Iterable<MIMEEvent> {
         if (start+bl+lwsp < len && (buf[start+bl+lwsp] == '\n' || buf[start+bl+lwsp] == '\r') ) {
             if (buf[start+bl+lwsp] == '\n') {
                 state = STATE.END_PART;
-                return adjustBuf(chunkLen, len-start-bl-lwsp);
+                return adjustBuf(chunkLen, len-start-bl-lwsp-1);
             } else if (start+bl+lwsp+1 < len && buf[start+bl+lwsp+1] == '\n') {
                 state = STATE.END_PART;
-                return adjustBuf(chunkLen, len-start-bl-lwsp-1);
+                return adjustBuf(chunkLen, len-start-bl-lwsp-2);
             }
         }
         return adjustBuf(start+1, len-start+1);
@@ -250,46 +254,56 @@ class MIMEParser implements Iterable<MIMEEvent> {
 
         byte[] temp = buf;
         // create a new buf and adjust it without this chunk
-        createBuf();
+        createBuf(remaining);
         System.arraycopy(temp, len-remaining, buf, 0, remaining);
         len = remaining;
 
         return ByteBuffer.wrap(temp, 0, chunkSize);
     }
 
-    private void createBuf() {
-        buf = new byte[capacity];
+    private void createBuf(int min) {
+        buf = new byte[min < capacity ? capacity : min];
     }
 
     /**
      * Skips the preamble to find the first attachment part
      */
     private void skipPreamble() {
-        try {
-            // Skip the preamble
-            LineInputStream lin = new LineInputStream(in);
-            String line;
-            while ((line = lin.readLine()) != null) {
-            /*
-             * Strip trailing whitespace.  Can't use trim method
-             * because it's too aggressive.  Some bogus MIME
-             * messages will include control characters in the
-             * boundary string.
-             */
-            int i;
-            for (i = line.length() - 1; i >= 0; i--) {
-                char c = line.charAt(i);
-                if (!(c == ' ' || c == '\t'))
-                break;
+
+        while(true) {
+            if (!eof) {
+                fillBuf();
             }
-            line = line.substring(0, i + 1);
-            if (line.equals(boundary))
-                break;
+            int start = match(buf, 0, len);     // matches boundary
+            if (start == -1) {
+                // No boundary is found
+                if (eof) {
+                    throw new MIMEParsingException("Missing start boundary");
+                } else {
+                    continue;
+                }
             }
-            if (line == null)
-                throw new MIMEParsingException("Missing start boundary");
-        } catch(IOException ioe) {
-            throw new MIMEParsingException(ioe);
+
+            if (start > config.threshold) {
+                adjustBuf(start, len-start);
+                continue;
+            }
+            // Consider all the whitespace boundary+whitespace+"\r\n"
+            int lwsp = 0;
+            for(int i=start+bl; i < len && (buf[i] == ' ' || buf[i] == '\t'); i++) {
+                ++lwsp;
+            }
+            // Check for \n or \r\n
+            if (start+bl+lwsp < len && (buf[start+bl+lwsp] == '\n' || buf[start+bl+lwsp] == '\r') ) {
+                if (buf[start+bl+lwsp] == '\n') {
+                    adjustBuf(start+bl+lwsp+1, len-start-bl-lwsp-1);
+                    break;
+                } else if (start+bl+lwsp+1 < len && buf[start+bl+lwsp+1] == '\n') {
+                    adjustBuf(start+bl+lwsp+2, len-start-bl-lwsp-2);
+                    break;
+                }
+            }
+            adjustBuf(start+1, len-start-1);
         }
     }
 
@@ -398,6 +412,61 @@ NEXT:   while (off <= last) {
                 len += read;
             }
         }
+    }
+
+    private void doubleBuf() {
+        byte[] temp = new byte[2*len];
+        System.arraycopy(buf, 0, temp, 0, len);
+        buf = temp;
+        fillBuf();
+    }
+
+    class LineInputStream {
+        private int offset;
+
+        /**
+         * Read a line containing only ASCII characters from the input
+         * stream. A line is terminated by a CR or NL or CR-NL sequence.
+         * A common error is a CR-CR-NL sequence, which will also terminate
+         * a line.
+         * The line terminator is not returned as part of the returned
+         * String. Returns null if no data is available. <p>
+         *
+         * This class is similar to the deprecated
+         * <code>DataInputStream.readLine()</code>
+         */
+        public String readLine() throws IOException {
+
+            int hdrLen = 0;
+            int lwsp = 0;
+            while(offset+hdrLen < len) {
+                if (buf[offset+hdrLen] == '\n') {
+                    lwsp = 1;
+                    break;
+                }
+                if (offset+hdrLen+1 == len) {
+                    doubleBuf();
+                }
+                if (offset+hdrLen+1 >= len) {   // No more data in the stream
+                    assert eof;
+                    return null;
+                }
+                if (buf[offset+hdrLen] == '\r' && buf[offset+hdrLen+1] == '\n') {
+                    lwsp = 2;
+                    break;
+                }
+                ++hdrLen;
+            }
+            if (hdrLen == 0) {
+                adjustBuf(offset+lwsp, len-offset-lwsp);
+                return null;
+            }
+
+            String hdr = new String(buf, offset, hdrLen);
+            offset += hdrLen+lwsp;
+            return hdr;
+        }
+
     }
     
 }

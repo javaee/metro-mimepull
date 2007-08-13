@@ -78,26 +78,6 @@ public final class InternetHeaders {
      */
     private List headerValueView;
 
-    /**
-     * Create an empty InternetHeaders object.
-     */
-    public InternetHeaders() {
-    }
-
-    /**
-     * Read and parse the given RFC822 message stream till the
-     * blank line separating the header from the body. The input
-     * stream is left positioned at the start of the body. The
-     * header lines are stored internally. <p>
-     * <p/>
-     * For efficiency, wrap a BufferedInputStream around the actual
-     * input stream and pass it as the parameter.
-     *
-     * @param	is RFC822 input stream
-     */
-    public InternetHeaders(InputStream is) {
-        load(is);
-    }
 
     /**
      * Read and parse the given RFC822 message stream till the
@@ -108,13 +88,12 @@ public final class InternetHeaders {
      * object, so any existing headers in this object will not be
      * affected.
      *
-     * @param	is RFC822 input stream
+     * @param	lis RFC822 input stream
      */
-    public void load(InputStream is) {
+    public InternetHeaders(MIMEParser.LineInputStream lis) {
         // Read header lines until a blank line. It is valid
         // to have BodyParts with no header lines.
         String line;
-        LineInputStream lis = new LineInputStream(is);
         String prevline = null;	// the previous header line, as a string
         // a buffer to accumulate the header in, when we know it's needed
         StringBuffer lineBuffer = new StringBuffer();
