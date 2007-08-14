@@ -21,7 +21,7 @@ public class StreamTest extends TestCase {
         String boundary = "--boundary";
         int size = 123456;
         MIMEConfig config = new MIMEConfig(false, 1024, 8192);
-        MIMEMessage mm = new MIMEMessage(getInputStream(123456), boundary , config);
+        MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);
 
         MIMEPart partA = mm.getPart("partA");
         verifyPart(partA.readOnce(), 0, size);
@@ -55,11 +55,11 @@ public class StreamTest extends TestCase {
             "1\r\n"+
             "--boundary\r\n"+
             "Content-Type: text/plain\r\n"+
-            "Content-ID: partB\r\n"+
+            "Content-ID: partB\r\n\r\n"+
             "2\r\n"+
             "--boundary\r\n"+
             "Content-Type: text/plain\r\n"+
-            "Content-ID: partC\r\n"+
+            "Content-ID: partC\r\n\r\n"+
             "3\r\n"+
             "--boundary--").getBytes();
 
@@ -75,7 +75,7 @@ public class StreamTest extends TestCase {
                         int partNo = data[i]-'1';
                         return (byte)('A'+(partNo+j++)%26);
                     } else {
-                        j = 0;
+                        j = 0; i++;
                     }
                 }
                 return data[i++];

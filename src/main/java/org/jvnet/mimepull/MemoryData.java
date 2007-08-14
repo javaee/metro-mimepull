@@ -26,7 +26,7 @@ public class MemoryData implements Data {
     }
 
     public void readTo(byte[] buf, int start, int len) {
-        System.arraycopy(data, start, buf, start, len);
+        System.arraycopy(data, start, buf, 0, len);
         counter -= len;
     }
 

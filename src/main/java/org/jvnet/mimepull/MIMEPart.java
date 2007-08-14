@@ -65,7 +65,7 @@ public class MIMEPart {
 
     private InternetHeaders headers;
     private String contentId;
-    private volatile boolean parsed;
+    volatile boolean parsed;
     private final MIMEMessage msg;
     private final MIMEConfig config;
 
@@ -97,7 +97,7 @@ public class MIMEPart {
             throw new IllegalStateException("Already read.");
         }
 
-        return new ChunkInputStream(head);
+        return new ChunkInputStream(msg, this, head);
     }
     
 
