@@ -203,7 +203,8 @@ class MIMEParser implements Iterable<MIMEEvent> {
             }
             return adjustBuf(chunkSize, len-chunkSize);
         }
-        // Found boundary
+        // Found boundary.
+        // Is it at the start of a line ?
         int chunkLen = start;
         if (start > 0 && (buf[start-1] == '\n' || buf[start-1] =='\r')) {
             --chunkLen;
@@ -211,7 +212,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
                 --chunkLen;
             }
         } else {
-           return adjustBuf(start+1, len-start+1);  // boundary is not at beginning of a line
+           return adjustBuf(start+1, len-start-1);  // boundary is not at beginning of a line
         }
 
         if (start+bl+1 < len && buf[start+bl] == '-' && buf[start+bl+1] == '-') {
@@ -235,7 +236,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
                 return adjustBuf(chunkLen, len-start-bl-lwsp-2);
             }
         }
-        return adjustBuf(start+1, len-start+1);
+        return adjustBuf(start+1, len-start-1);
     }
 
     /**

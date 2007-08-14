@@ -86,4 +86,52 @@ public class ParsingTest extends TestCase {
         assertEquals("attachmentPart", parts.get(1).getContentId());
     }
 
+    public void testNoHeaders() throws Exception {
+        InputStream in = getClass().getResourceAsStream("../noheaders.txt");
+        String boundary = "------=_Part_7_10584188.1123489648993";
+        MIMEConfig config = new MIMEConfig(false, 1024, 512);
+        MIMEMessage mm = new MIMEMessage(in, boundary , config);
+        mm.parseAll();
+        List<MIMEPart> parts = mm.getAttachments();
+        assertEquals(2, parts.size());
+        assertEquals("0", parts.get(0).getContentId());
+        assertEquals("1", parts.get(1).getContentId());
+    }
+
+    public void testOneByte() throws Exception {
+        InputStream in = getClass().getResourceAsStream("../onebyte.txt");
+        String boundary = "boundary";
+        MIMEConfig config = new MIMEConfig(false, 1024, 512);
+        MIMEMessage mm = new MIMEMessage(in, boundary , config);
+        mm.parseAll();
+        List<MIMEPart> parts = mm.getAttachments();
+        assertEquals(2, parts.size());
+        assertEquals("0", parts.get(0).getContentId());
+        assertEquals("1", parts.get(1).getContentId());
+    }
+
+    public void testBoundaryWhiteSpace() throws Exception {
+        InputStream in = getClass().getResourceAsStream("../boundary-lwsp.txt");
+        String boundary = "boundary";
+        MIMEConfig config = new MIMEConfig(false, 1024, 512);
+        MIMEMessage mm = new MIMEMessage(in, boundary , config);
+        mm.parseAll();
+        List<MIMEPart> parts = mm.getAttachments();
+        assertEquals(2, parts.size());
+        assertEquals("part1", parts.get(0).getContentId());
+        assertEquals("part2", parts.get(1).getContentId());
+    }
+
+    public void testBoundaryInBody() throws Exception {
+        InputStream in = getClass().getResourceAsStream("../boundary-in-body.txt");
+        String boundary = "boundary";
+        MIMEConfig config = new MIMEConfig(false, 1024, 512);
+        MIMEMessage mm = new MIMEMessage(in, boundary , config);
+        mm.parseAll();
+        List<MIMEPart> parts = mm.getAttachments();
+        assertEquals(2, parts.size());
+        assertEquals("part1", parts.get(0).getContentId());
+        assertEquals("part2", parts.get(1).getContentId());
+    }
+
 }
