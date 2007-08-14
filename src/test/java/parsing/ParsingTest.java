@@ -86,6 +86,18 @@ public class ParsingTest extends TestCase {
         assertEquals("attachmentPart", parts.get(1).getContentId());
     }
 
+    public void testEmptyPart() throws Exception {
+        InputStream in = getClass().getResourceAsStream("../emptypart.txt");
+        String boundary = "------=_Part_7_10584188.1123489648993";
+        MIMEConfig config = new MIMEConfig(false, 1024, 512);
+        MIMEMessage mm = new MIMEMessage(in, boundary , config);
+        mm.parseAll();
+        List<MIMEPart> parts = mm.getAttachments();
+        assertEquals(2, parts.size());
+        assertEquals("soapPart", parts.get(0).getContentId());
+        assertEquals("attachmentPart", parts.get(1).getContentId());
+    }
+
     public void testNoHeaders() throws Exception {
         InputStream in = getClass().getResourceAsStream("../noheaders.txt");
         String boundary = "------=_Part_7_10584188.1123489648993";

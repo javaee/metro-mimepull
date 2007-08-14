@@ -41,15 +41,17 @@ package org.jvnet.mimepull;
 public class MIMEConfig {
 
     final boolean parseAll;
-    final int firstChunkSize;
-    final int nextChunkSize;
-    final int threshold;
 
-    public MIMEConfig(boolean parseAll, int firstChunkSize, int nextChunkSize ) {
+    // Approximate Chunk size
+    final int chunkSize;
+
+    // Maximum in-memory data
+    final int inMemorySize;
+
+    public MIMEConfig(boolean parseAll, int chunkSize, int inMemorySize ) {
         this.parseAll = parseAll;
-        this.firstChunkSize = firstChunkSize;
-        this.nextChunkSize = nextChunkSize;
-        this.threshold = 8192;
+        this.chunkSize = chunkSize;
+        this.inMemorySize = inMemorySize;
     }
 
 }

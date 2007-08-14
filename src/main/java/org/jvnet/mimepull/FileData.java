@@ -1,5 +1,7 @@
 package org.jvnet.mimepull;
 
+import java.nio.ByteBuffer;
+
 /**
  * @author Kohsuke Kawaguchi
  */
@@ -14,11 +16,18 @@ public class FileData implements Data {
     }
 
     public void readTo(byte[] buf, int start, int len) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        
     }
 
-    public Data createNext(MIMEPart part) {
-        //return new FileData();
-        return null;
+    public void writeTo(DataFile file) {
+        
+    }
+
+    public int size() {
+        return 0;   // TODO
+    }
+
+    public Data createNext(ByteBuffer buf, MIMEPart part) {
+        return new FileData(file);
     }
 }

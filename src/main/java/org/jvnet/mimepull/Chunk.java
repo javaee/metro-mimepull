@@ -1,5 +1,7 @@
 package org.jvnet.mimepull;
 
+import java.nio.ByteBuffer;
+
 /**
  * @author Kohsuke Kawaguchi
  */
@@ -11,8 +13,7 @@ final class Chunk {
         this.data = data;
     }
 
-    public Chunk createNext(Chunk head, MIMEMessage msg) {
-        //return next = new Chunk(data.createNext(0));
-        return null;
+    public Chunk createNext(Chunk head, MIMEPart part, ByteBuffer buf) {
+        return next = new Chunk(data.createNext(buf, part));
     }
 }

@@ -90,7 +90,7 @@ public class MIMEMessage {
         }
         if (part == null) {
             // Parsing will done lazily and will be driven by reading the part
-            part = new MIMEPart(this);
+            part = new MIMEPart(this, config);
             partsList.add(index, part);
         }
         return part;
@@ -112,7 +112,7 @@ public class MIMEMessage {
         }
         if (part == null) {
             // Parsing is done lazily and is driven by reading the part
-            part = new MIMEPart(this, contentId);
+            part = new MIMEPart(this, config, contentId);
             partsMap.put(contentId, part);
         }
         return part;
@@ -120,7 +120,7 @@ public class MIMEMessage {
 
 
     /**
-     *
+     * Parses the whole MIME message eagerly
      */
     public void parseAll() {
         while(makeProgress())
@@ -131,12 +131,15 @@ public class MIMEMessage {
     private int currentIndex = 0;
 
     /**
+     * Parses the MIME message in a pull fashion.
      *
      * @return
      *      false if the parsing is completed.
      */
-    public boolean makeProgress() {
-        if(!it.hasNext())   return false;
+    public synchronized boolean makeProgress() {
+        if (!it.hasNext()) {
+            return false;
+        }
 
         MIMEEvent event = it.next();
 

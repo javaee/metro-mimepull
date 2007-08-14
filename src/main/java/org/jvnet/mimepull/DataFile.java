@@ -2,6 +2,7 @@ package org.jvnet.mimepull;
 
 import java.io.RandomAccessFile;
 import java.io.File;
+import java.io.IOException;
 
 /**
  * @author Kohsuke Kawaguchi
@@ -13,30 +14,44 @@ class DataFile {
 
 
     public DataFile(File file) {
-        /*
         this.file = file;
-        raf = new RandomAccessFile(file,...);
+        try {
+            raf = new RandomAccessFile(file, "rw");
+        } catch(IOException ioe) {
+            throw new MIMEParsingException(ioe);
+        }
         pointer=0;
-        */
     }
 
     public void read( long pointer, byte[] buf, int start, int length ) {
-        /*
-        if(this.pointer!=pointer) {
-            raf.seek(pointer);
+        if (this.pointer != pointer) {
+            try {
+                raf.seek(pointer);
+            } catch(IOException ioe) {
+                throw new MIMEParsingException(ioe);
+            }
             this.pointer = pointer;
         }
-        raf.read(buf,start,length);
+        try {
+            raf.read(buf,start,length);
+        } catch(IOException ioe) {
+            throw new MIMEParsingException(ioe);
+        }
         pointer+=length;
-        */
     }
 
     public void renameTo(File f) {
-        /*
-        raf.close();
+        try {
+            raf.close();
+        } catch(IOException ioe) {
+            throw new MIMEParsingException(ioe);
+        }
         file.renameTo(f);
-        raf = new RandomAccessFile(f);
+        try {
+            raf = new RandomAccessFile(f, "rw");
+        } catch(IOException ioe) {
+            throw new MIMEParsingException(ioe);
+        }
         pointer = 0;
-        */
     }
 }

@@ -99,7 +99,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
         compileBoundaryPattern();
 
         // \r\n + boundary + "--\r\n" + lots of LWSP
-        capacity = config.threshold+2+bl+4+NO_LWSP;
+        capacity = config.chunkSize+2+bl+4+NO_LWSP;
         createBuf(capacity);
     }
 
@@ -190,8 +190,8 @@ class MIMEParser implements Iterable<MIMEEvent> {
         int start = match(buf, 0, len);     // matches boundary
         if (start == -1) {
             // No boundary is found
-            assert eof || len >= config.threshold;
-            int chunkSize = eof ? len : config.threshold;
+            assert eof || len >= config.chunkSize;
+            int chunkSize = eof ? len : config.chunkSize;
             if (eof) {
                 done = true;
                 state = STATE.END_PART;
@@ -234,7 +234,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
         }
 
         // Let us give chance to consume atleast NO_LWSP whitespace characters
-        if (lwsp > 0 && start > config.threshold) {
+        if (lwsp > 0 && start > config.chunkSize) {
             return adjustBuf(start, len-start);
         }
 
@@ -288,7 +288,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
                 }
             }
 
-            if (start > config.threshold) {
+            if (start > config.chunkSize) {
                 adjustBuf(start, len-start);
                 continue;
             }

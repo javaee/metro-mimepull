@@ -63,23 +63,19 @@ public class MIMEPart {
      */
     DataFile dataFile;
 
-
     private InternetHeaders headers;
     private String contentId;
     private volatile boolean parsed;
     private final MIMEMessage msg;
+    private final MIMEConfig config;
 
-    // only one is not null ByteArrayList or RandomAccessFile
-    private ByteArrayBufferList buf;
-    private RandomAccessFile file;
-
-
-    MIMEPart(MIMEMessage msg) {
+    MIMEPart(MIMEMessage msg, MIMEConfig config) {
         this.msg = msg;
+        this.config = config;
     }
 
-    MIMEPart(MIMEMessage msg, String contentId) {
-        this(msg);
+    MIMEPart(MIMEMessage msg, MIMEConfig config, String contentId) {
+        this(msg, config);
         this.contentId = contentId;
     }
 
@@ -91,15 +87,19 @@ public class MIMEPart {
      * @return data for the part's content
      */
     public InputStream read() {
-        while(tail==null)
-            if(!msg.makeProgress())
+        while(tail == null) {
+            if (!msg.makeProgress()) {
                 throw new IllegalStateException("No such content ID: "+contentId);
+            }
+        }
 
-        if(head==null)
-            throw new IllegalStateException("already read.");
+        if (head == null) {
+            throw new IllegalStateException("Already read.");
+        }
 
         return new ChunkInputStream(head);
     }
+    
 
     /**
      * Can get the attachment part's content only once. The content
@@ -149,13 +149,11 @@ public class MIMEPart {
     }
 
     void addBody(ByteBuffer buf) {
-        /*
-        if(tail!=null) {
-            tail = tail.createNext(head,msg);
+        if (tail!=null) {
+            tail = tail.createNext(head, this, buf);
         } else {
-//            head = tail = new Chunk(new MemoryData(msg));
+            head = tail = new Chunk(new MemoryData(buf, config));
         }
-        */
     }
     
     void doneParsing() {
@@ -164,30 +162,6 @@ public class MIMEPart {
 
     public void setContentId(String cid) {
         this.contentId = cid;
-    }
-
-    private class MyInputStream extends InputStream {
-        boolean onetime = true;
-
-        MyInputStream() {
-
-        }
-
-        public int read() throws IOException {
-            /*
-            if (parsed) {
-                // Parsing is done
-            } else {
-                if (onetime) {
-                    onetime = false;
-                    parser.readMinimum();
-
-                }
-            }
-            */
-
-            return 0;
-        }
     }
 
     @Override

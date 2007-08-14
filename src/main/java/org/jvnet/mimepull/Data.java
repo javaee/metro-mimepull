@@ -1,13 +1,19 @@
 package org.jvnet.mimepull;
 
+import java.nio.ByteBuffer;
+import java.io.File;
+
 /**
  * @author Kohsuke Kawaguchi
  */
 interface Data {
-    // size should be fixed by Parser
-    // int size();
+
+    // size of the chunk given by the parser
+    int size();
 
     void readTo( byte[] buf, int start, int len );
 
-    Data createNext(MIMEPart part);
+    void writeTo(DataFile file);
+
+    Data createNext(ByteBuffer buf, MIMEPart msg);
 }
