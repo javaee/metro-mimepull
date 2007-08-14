@@ -57,17 +57,17 @@ import java.nio.ByteBuffer;
  * }
  * </pre>
  *
- * Original parsing code is taken from java mail's MIME parser.
- *
  * @author Jitendra Kotamraju
  */
 class MIMEParser implements Iterable<MIMEEvent> {
+    // Actually, the grammar doesn't support whitespace characters
+    // after boundary. But the mail implementation checks for it.
+    // We will only check for these many whitespace characters after boundary
     private static final int NO_LWSP = 1000;
     private enum STATE {START_MESSAGE, SKIP_PREAMBLE, START_PART, HEADERS, BODY, END_PART, END_MESSAGE}
     private STATE state = STATE.START_MESSAGE;
 
     private final InputStream in;
-    private final String boundary;
     private final byte[] bndbytes;
     private final int bl;
     private final MIMEConfig config;
@@ -91,12 +91,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
     private int len;
 
     MIMEParser(InputStream in, String boundary, MIMEConfig config) {
-        /*
-        this.in = (in instanceof ByteArrayInputStream || in instanceof BufferedInputStream)
-                ? in :  new BufferedInputStream(in);
-                */
         this.in = in;
-        this.boundary = boundary;
         this.bndbytes = getBytes(boundary);
         bl = bndbytes.length;
         this.config = config;
@@ -221,11 +216,12 @@ class MIMEParser implements Iterable<MIMEEvent> {
             return adjustBuf(chunkLen, 0);
         }
 
-        // Consider all the whitespace boundary+whitespace+"\r\n"
+        // Consider all the whitespace in boundary+whitespace+"\r\n"
         int lwsp = 0;
         for(int i=start+bl; i < len && (buf[i] == ' ' || buf[i] == '\t'); i++) {
             ++lwsp;
         }
+
         // Check for \n or \r\n
         if (start+bl+lwsp < len && (buf[start+bl+lwsp] == '\n' || buf[start+bl+lwsp] == '\r') ) {
             if (buf[start+bl+lwsp] == '\n') {
@@ -236,6 +232,13 @@ class MIMEParser implements Iterable<MIMEEvent> {
                 return adjustBuf(chunkLen, len-start-bl-lwsp-2);
             }
         }
+
+        // Let us give chance to consume atleast NO_LWSP whitespace characters
+        if (lwsp > 0 && start > config.threshold) {
+            return adjustBuf(start, len-start);
+        }
+
+        // Not a proper boundary
         return adjustBuf(start+1, len-start-1);
     }
 
