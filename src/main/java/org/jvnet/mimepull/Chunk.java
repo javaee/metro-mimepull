@@ -22,6 +22,6 @@ final class Chunk {
      * @return created chunk
      */
     public Chunk createNext(Chunk head, MIMEPart part, ByteBuffer buf) {
-        return next = new Chunk(data.createNext(buf, part));
+        return next = new Chunk(data.createNext(head, buf, part));
     }
 }

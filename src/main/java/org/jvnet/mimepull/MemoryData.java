@@ -11,7 +11,7 @@ import java.io.IOException;
 public class MemoryData implements Data {
     private final byte[] data;
     private final int len;
-    private int counter;
+    //private int counter;
     private final MIMEConfig config;
 
     public MemoryData(ByteBuffer buf, MIMEConfig config) {
@@ -26,15 +26,21 @@ public class MemoryData implements Data {
     }
 
     public void readTo(byte[] buf, int start, int len) {
-        System.arraycopy(data, start, buf, 0, len);
-        counter -= len;
+        System.arraycopy(data, start, buf, start, len);
+        //counter -= len;
     }
 
-    public void writeTo(DataFile file) {
+    public long writeTo(DataFile file) {
+        return file.writeTo(data, 0, len);
     }
 
-    public Data createNext(ByteBuffer buf, MIMEPart part) {
-        counter += buf.limit();
+    public Data createNext(Chunk head, ByteBuffer buf, MIMEPart part) {
+        // TODO need to keep counter on part ??
+        int counter = 0;
+        while(head != null) {
+            counter += head.data.size();
+            head = head.next;
+        }
 
         if (counter >= config.inMemorySize) {
             try {
@@ -44,14 +50,16 @@ public class MemoryData implements Data {
             }
 
             if (part.head != null) {
+                long pointer = 0;
                 // TODO: turn the whole thing to File from the byte 0
-                for(Chunk c=part.head; c!=null; c=c.next) {
+                for(Chunk c=part.head; c != null; c=c.next) {
                     c.data.writeTo(part.dataFile);
-                    c.data = new FileData(part.dataFile);
+                    c.data = new FileData(part.dataFile, pointer, len);
+                    pointer += len;
                 }
             }
-
-            return new FileData(part.dataFile);
+            long pointer = part.dataFile.writeTo(buf.array(), 0, buf.limit());
+            return new FileData(part.dataFile, pointer, buf.limit());
         } else {
             return new MemoryData(buf, config);
         }

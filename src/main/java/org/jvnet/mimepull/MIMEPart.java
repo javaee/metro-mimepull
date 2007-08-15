@@ -87,6 +87,11 @@ public class MIMEPart {
      * @return data for the part's content
      */
     public InputStream read() {
+        if (parsed && dataFile != null) {
+            head = null;
+            return dataFile.getInputStream();
+
+        }
         while(tail == null) {
             if (!msg.makeProgress()) {
                 throw new IllegalStateException("No such content ID: "+contentId);
@@ -120,6 +125,7 @@ public class MIMEPart {
     }
 
     public void moveTo(File f) {
+        /*
         if(tail==null) {
             dataFile = new DataFile(f);
             tail = head = new Chunk(new FileData(dataFile));
@@ -133,6 +139,7 @@ public class MIMEPart {
 
             }
         }
+        */
     }
 
     /**

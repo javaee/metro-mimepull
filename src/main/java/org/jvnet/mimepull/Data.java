@@ -13,7 +13,12 @@ interface Data {
 
     void readTo( byte[] buf, int start, int len );
 
-    void writeTo(DataFile file);
+    /**
+     *
+     * @param file
+     * @return file pointer before the write operation
+     */
+    long writeTo(DataFile file);
 
-    Data createNext(ByteBuffer buf, MIMEPart msg);
+    Data createNext(Chunk head, ByteBuffer buf, MIMEPart msg);
 }
