@@ -25,9 +25,15 @@ public class MemoryData implements Data {
         return len;
     }
 
+    /*
     public void readTo(byte[] buf, int start, int len) {
         System.arraycopy(data, start, buf, start, len);
         //counter -= len;
+    }
+    */
+
+    public byte[] read() {
+        return data;
     }
 
     public long writeTo(DataFile file) {
@@ -58,8 +64,7 @@ public class MemoryData implements Data {
                     pointer += len;
                 }
             }
-            long pointer = part.dataFile.writeTo(buf.array(), 0, buf.limit());
-            return new FileData(part.dataFile, pointer, buf.limit());
+            return new FileData(part.dataFile, buf);
         } else {
             return new MemoryData(buf, config);
         }

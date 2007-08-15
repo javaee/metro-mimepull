@@ -153,8 +153,8 @@ public class MIMEMessage {
             case HEADERS :
                 MIMEEvent.Headers headers = (MIMEEvent.Headers)event;
                 InternetHeaders ih = headers.getHeaders();
-                String [] cids = ih.getHeader("content-id");
-                String cid = (cids != null) ? cids[0] : partsList.size()+"";
+                List<String> cids = ih.getHeader("content-id");
+                String cid = (cids != null) ? cids.get(0) : partsList.size()+"";
                 if (cid.length() > 2 && cid.charAt(0)=='<') {
                     cid = cid.substring(1,cid.length()-1);
                 }

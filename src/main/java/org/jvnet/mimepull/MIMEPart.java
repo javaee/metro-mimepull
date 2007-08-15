@@ -35,11 +35,10 @@
  */
 package org.jvnet.mimepull;
 
-import java.io.InputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.io.File;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
  * Represents an attachment part in a MIME message. MIME message parsing is done
@@ -53,6 +52,9 @@ import java.nio.ByteBuffer;
  */
 public class MIMEPart {
 
+    /**
+     * Linked list to keep the part's content
+     */
     Chunk head, tail;
 
     /**
@@ -65,7 +67,8 @@ public class MIMEPart {
 
     private InternetHeaders headers;
     private String contentId;
-    volatile boolean parsed;
+    private String contentType;
+    volatile boolean parsed;    // part is parsed or not
     private final MIMEMessage msg;
     private final MIMEConfig config;
 
@@ -82,16 +85,19 @@ public class MIMEPart {
     /**
      * Can get the attachment part's content multiple times. That means
      * the full content needs to be there in memory or on the file system.
+     * Calling this method would trigger parsing for the part's data. So
+     * do not call this unless it is required(otherwise, just wrap MIMEPart
+     * into a object that returns InputStream for e.g DataHandler)
      *
-     * TODO: can it called multiple times concurrently
      * @return data for the part's content
      */
     public InputStream read() {
-        if (parsed && dataFile != null) {
-            head = null;
+        // Have the complete data on the file system
+        if (parsed && dataFile != null && head != null) {
             return dataFile.getInputStream();
-
         }
+
+        // Trigger parsing for the part
         while(tail == null) {
             if (!msg.makeProgress()) {
                 throw new IllegalStateException("No such content ID: "+contentId);
@@ -99,7 +105,7 @@ public class MIMEPart {
         }
 
         if (head == null) {
-            throw new IllegalStateException("Already read.");
+            throw new IllegalStateException("Already read. Probably readOnce() is called before.");
         }
 
         return new ChunkInputStream(msg, this, head);
@@ -151,10 +157,52 @@ public class MIMEPart {
         return contentId;
     }
 
-    void setHeaders(InternetHeaders headers) {
-        this.headers = headers;
+    /**
+     * Returns Content-Type MIME header for this attachment part
+     *
+     * @return Content-Type of the part
+     */
+    public String getContentType() {
+        return contentType;
     }
 
+    /**
+     * Return all the values for the specified header.
+     * Returns <code>null</code> if no headers with the
+     * specified name exist.
+     *
+     * @param	name header name
+     * @return	list of header values, or null if none
+     */
+    public List<String> getHeader(String name) {
+        return headers.getHeader(name);
+    }
+
+    /**
+     * Return all the headers
+     *
+     * @return list of Header objects
+     */
+    public List<? extends Header> getAllHeaders() {
+        return headers.getAllHeaders();
+    }
+
+    /**
+     * Callback to set headers
+     *
+     * @param headers MIME headers for the part
+     */
+    void setHeaders(InternetHeaders headers) {
+        this.headers = headers;
+        List<String> ct = getHeader("Content-Type");
+        this.contentType = (ct == null) ? "application/octet-stream" : ct.get(0);
+    }
+
+    /**
+     * Callback to notify that there is a partial content for the part
+     *
+     * @param buf content data for the part
+     */
     void addBody(ByteBuffer buf) {
         if (tail!=null) {
             tail = tail.createNext(head, this, buf);
@@ -162,12 +210,20 @@ public class MIMEPart {
             head = tail = new Chunk(new MemoryData(buf, config));
         }
     }
-    
+
+    /**
+     * Callback to indicate that parsing is done for this part
+     * (no more update events for this part)
+     */
     void doneParsing() {
         parsed = true;
     }
 
-    public void setContentId(String cid) {
+    /**
+     * Callback to set Content-ID for this part
+     * @param cid Content-ID of the part
+     */
+    void setContentId(String cid) {
         this.contentId = cid;
     }
 

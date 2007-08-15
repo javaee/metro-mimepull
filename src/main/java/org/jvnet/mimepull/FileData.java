@@ -11,6 +11,9 @@ public class FileData implements Data {
     private final long pointer;
     private final int length;
 
+    public FileData(DataFile file, ByteBuffer buf) {
+        this(file, file.writeTo(buf.array(), 0, buf.limit()), buf.limit());
+    }
 
     public FileData(DataFile file, long pointer, int length) {
         this.file = file;
@@ -18,8 +21,10 @@ public class FileData implements Data {
         this.length = length;
     }
 
-    public void readTo(byte[] buf, int start, int len) {
-        file.read(pointer,buf,start,len);
+    public byte[] read() {
+        byte[] buf = new byte[length];
+        file.read(pointer, buf, 0, length);
+        return buf;
     }
 
     public long writeTo(DataFile file) {
@@ -31,7 +36,6 @@ public class FileData implements Data {
     }
 
     public Data createNext(Chunk head, ByteBuffer buf, MIMEPart part) {
-        long pointer = file.writeTo(buf.array(), 0, buf.limit());
-        return new FileData(file, pointer, buf.limit());
+        return new FileData(file, buf);
     }
 }

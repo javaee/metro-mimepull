@@ -1,24 +1,47 @@
 package org.jvnet.mimepull;
 
 import java.nio.ByteBuffer;
-import java.io.File;
 
 /**
  * @author Kohsuke Kawaguchi
+ * @author Jitendra Kotamraju
  */
 interface Data {
 
-    // size of the chunk given by the parser
+    /**
+     * size of the chunk given by the parser
+     *
+     * @return size of the chunk
+     */
     int size();
 
-    void readTo( byte[] buf, int start, int len );
+    /**
+     * TODO: should the return type be ByteBuffer ??
+     * Return part's partial data. The data is read only.
+     *
+     * @return a byte array which contains {#size()} bytes. The returned
+     *         array may be larger than {#size()} bytes and contains data
+     *         from offset 0.
+     */
+    byte[] read();
 
     /**
+     * Write this partial data to a file
      *
-     * @param file
-     * @return file pointer before the write operation
+     * @param file to which the data needs to be written
+     * @return file pointer before the write operation(at which the data is
+     *         written from)
      */
     long writeTo(DataFile file);
 
-    Data createNext(Chunk head, ByteBuffer buf, MIMEPart msg);
+    /**
+     * Factory method to create a Data. The implementation could
+     * be file based one or memory based one.
+     *
+     * @param head start of the linked list of data objects
+     * @param buf contains partial content for a part
+     * @param part for which a Data object is created
+     * @return Data
+     */
+    Data createNext(Chunk head, ByteBuffer buf, MIMEPart part);
 }

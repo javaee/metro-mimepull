@@ -20,7 +20,7 @@ public class StreamTest extends TestCase {
     public void testOrder() throws Exception {
         String boundary = "--boundary";
         int size = 123456789;
-        MIMEConfig config = new MIMEConfig(false, 1024, 8192);
+        MIMEConfig config = new MIMEConfig(false, 8192, 48000);
         MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);
 
         MIMEPart partA = mm.getPart("partA");

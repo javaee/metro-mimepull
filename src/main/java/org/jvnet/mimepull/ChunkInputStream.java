@@ -4,7 +4,10 @@ import java.io.InputStream;
 import java.io.IOException;
 
 /**
+ * Constructs a InputStream from a linked list of {@link Chunk}s.
+ * 
  * @author Kohsuke Kawaguchi
+ * @author Jitendra Kotamraju
  */
 final class ChunkInputStream extends InputStream {
     Chunk current;
@@ -12,13 +15,12 @@ final class ChunkInputStream extends InputStream {
     int len;
     final MIMEMessage msg;
     final MIMEPart part;
-    byte[] buf;         // TODO no reallocation; use one size
+    byte[] buf;
 
     public ChunkInputStream(MIMEMessage msg, MIMEPart part, Chunk startPos) {
         this.current = startPos;
         len = current.data.size();
-        buf = new byte[len];                // TODO reuse
-        current.data.readTo(buf, 0, len);
+        buf = current.data.read();
         this.msg = msg;
         this.part = part;
     }
@@ -28,7 +30,7 @@ final class ChunkInputStream extends InputStream {
             return buf[offset++];
         }
         while(true) {
-            if (current.next == null && part.parsed) {     // TOD sync or volatile
+            if (current.next == null && part.parsed) {     // TODO sync or volatile
                 return -1;
             }
             if (current.next == null)
@@ -40,8 +42,7 @@ final class ChunkInputStream extends InputStream {
         assert current != null;
         this.offset = 0;
         this.len = current.data.size();
-        buf = new byte[len];            // TODO reuse
-        current.data.readTo(buf, 0, len);
+        buf = current.data.read();
         if (offset < len) {
             return buf[offset++];
         }
