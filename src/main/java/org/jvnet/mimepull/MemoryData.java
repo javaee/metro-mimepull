@@ -5,16 +5,17 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * Keeps the Part's partial content data in memory.
+ *
  * @author Kohsuke Kawaguchi
  * @author Jitendra Kotamraju
  */
-public class MemoryData implements Data {
+final class MemoryData implements Data {
     private final byte[] data;
     private final int len;
-    //private int counter;
     private final MIMEConfig config;
 
-    public MemoryData(ByteBuffer buf, MIMEConfig config) {
+    MemoryData(ByteBuffer buf, MIMEConfig config) {
         data = buf.array();
         len = buf.limit();
         this.config = config;
@@ -25,13 +26,6 @@ public class MemoryData implements Data {
         return len;
     }
 
-    /*
-    public void readTo(byte[] buf, int start, int len) {
-        System.arraycopy(data, start, buf, start, len);
-        //counter -= len;
-    }
-    */
-
     public byte[] read() {
         return data;
     }
@@ -40,6 +34,13 @@ public class MemoryData implements Data {
         return file.writeTo(data, 0, len);
     }
 
+    /**
+     * 
+     * @param head
+     * @param buf
+     * @param part
+     * @return
+     */
     public Data createNext(Chunk head, ByteBuffer buf, MIMEPart part) {
         // TODO need to keep counter on part ??
         int counter = 0;
