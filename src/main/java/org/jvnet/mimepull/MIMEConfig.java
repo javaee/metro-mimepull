@@ -40,7 +40,8 @@ package org.jvnet.mimepull;
  */
 public class MIMEConfig {
 
-    final boolean parseAll;
+    // Parses the entire message eagerly
+    final boolean parseEagerly;
 
     // Approximate Chunk size
     final int chunkSize;
@@ -48,8 +49,8 @@ public class MIMEConfig {
     // Maximum in-memory data
     final int inMemorySize;
 
-    public MIMEConfig(boolean parseAll, int chunkSize, int inMemorySize ) {
-        this.parseAll = parseAll;
+    public MIMEConfig(boolean parseEagerly, int chunkSize, int inMemorySize ) {
+        this.parseEagerly = parseEagerly;
         this.chunkSize = chunkSize;
         this.inMemorySize = inMemorySize;
     }

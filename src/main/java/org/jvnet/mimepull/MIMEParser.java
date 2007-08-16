@@ -92,7 +92,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
 
     MIMEParser(InputStream in, String boundary, MIMEConfig config) {
         this.in = in;
-        this.bndbytes = getBytes(boundary);
+        this.bndbytes = getBytes("--"+boundary);
         bl = bndbytes.length;
         this.config = config;
         gss = new int[bl];
@@ -284,6 +284,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
                 if (eof) {
                     throw new MIMEParsingException("Missing start boundary");
                 } else {
+                    adjustBuf(len-bl+1, bl-1);
                     continue;
                 }
             }

@@ -65,8 +65,8 @@ public class MIMEPart {
      */
     DataFile dataFile;
 
-    private InternetHeaders headers;
-    private String contentId;
+    private volatile InternetHeaders headers;
+    private volatile String contentId;
     private String contentType;
     volatile boolean parsed;    // part is parsed or not
     private final MIMEMessage msg;
@@ -154,6 +154,9 @@ public class MIMEPart {
      * @return Content-ID of the part
      */
     public String getContentId() {
+        if (contentId == null) {
+            getHeaders();
+        }
         return contentId;
     }
 
@@ -163,7 +166,21 @@ public class MIMEPart {
      * @return Content-Type of the part
      */
     public String getContentType() {
+        if (contentType == null) {
+            getHeaders();
+        }
         return contentType;
+    }
+
+    private void getHeaders() {
+        // Trigger parsing for the part headers
+        while(headers == null) {
+            if (!msg.makeProgress()) {
+                if (headers == null) {
+                    throw new IllegalStateException("Internal Error. Didn't get Headers even after complete parsing.");
+                }
+            }
+        }
     }
 
     /**
@@ -175,6 +192,8 @@ public class MIMEPart {
      * @return	list of header values, or null if none
      */
     public List<String> getHeader(String name) {
+        getHeaders();
+        assert headers != null;
         return headers.getHeader(name);
     }
 
@@ -184,6 +203,8 @@ public class MIMEPart {
      * @return list of Header objects
      */
     public List<? extends Header> getAllHeaders() {
+        getHeaders();
+        assert headers != null;
         return headers.getAllHeaders();
     }
 

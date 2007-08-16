@@ -18,7 +18,7 @@ public class StreamTest extends TestCase {
     // Parts are accessed in order. The data is accessed using readOnce()
     // and there shouldn't be any data stored in temp files.
     public void testOrder() throws Exception {
-        String boundary = "--boundary";
+        String boundary = "boundary";
         int size = 123456789;
         MIMEConfig config = new MIMEConfig(false, 8192, 48000);
         MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);
@@ -36,7 +36,7 @@ public class StreamTest extends TestCase {
     // partB, partA, partC are accessed in that order. Then partA should
     // go to disk. partB, and partC are accessed from in-memory
     public void testOutofOrder() throws Exception {
-        String boundary = "--boundary";
+        String boundary = "boundary";
         int size = 12345678;
         MIMEConfig config = new MIMEConfig(false, 1024, 8192);
         MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);

@@ -54,6 +54,13 @@ public class MIMEMessage {
     private final Iterator<MIMEEvent> it;
     private boolean parsed = false;
 
+    /**
+     *
+     *
+     * @param in
+     * @param boundary the separator for parts(pass it without --)
+     * @param config
+     */
     public MIMEMessage(InputStream in, String boundary, MIMEConfig config) {
         this.config = config;
         parser = new MIMEParser(in, boundary, config);
