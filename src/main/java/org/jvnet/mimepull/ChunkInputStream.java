@@ -26,6 +26,8 @@ final class ChunkInputStream extends InputStream {
     }
 
     public int read() throws IOException {
+        if(current==null)
+            throw new IllegalStateException("Stream already closed");
         while(offset==len) {
             while(current.next==null || !part.parsed)
                 msg.makeProgress();
@@ -41,4 +43,8 @@ final class ChunkInputStream extends InputStream {
         return (buf[offset++] & 0xff);
     }
 
+    public void close() throws IOException {
+        super.close();
+        current = null;
+    }
 }
