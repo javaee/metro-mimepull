@@ -25,7 +25,7 @@ final class ChunkInputStream extends InputStream {
         this.part = part;
     }
 
-
+    @Override
     public int read(byte b[], int off, int sz) throws IOException {
         if(!fetch())    return -1;
 
@@ -41,19 +41,23 @@ final class ChunkInputStream extends InputStream {
 
     /**
      * Gets to the next chunk if we are done with the current one.
+     * @return
      */
     private boolean fetch() {
-        if(current==null)
+        if (current == null) {
             throw new IllegalStateException("Stream already closed");
+        }
         while(offset==len) {
-            while(current.next==null || !part.parsed)
+            while(!part.parsed && current.next == null) {
                 msg.makeProgress();
+            }
             current = current.next;
 
-            if(current==null)
+            if (current == null) {
                 return false;
-
+            }
             this.offset = 0;
+            this.buf = current.data.read();
             this.len = current.data.size();
         }
         return true;
