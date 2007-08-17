@@ -91,7 +91,7 @@ public class MIMEMessage {
      * @return attachemnt part
      */
     public MIMEPart getPart(int index) {
-        MIMEPart part = partsList.get(index);
+        MIMEPart part = (index < partsList.size()) ? partsList.get(index) : null;
         if (parsed && part == null) {
             throw new MIMEParsingException("There is no "+index+" attachment part ");
         }
@@ -109,7 +109,7 @@ public class MIMEMessage {
      * do the validation, the message needs to be parsed. The parsing of the
      * message is done lazily and is done while reading the bytes of the part.
      *
-     * @param contentId Content-ID of the part
+     * @param contentId Content-ID of the part, expects Content-ID without <, >
      * @return attachemnt part
      */
     public MIMEPart getPart(String contentId) {
