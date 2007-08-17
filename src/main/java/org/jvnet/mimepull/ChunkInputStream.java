@@ -27,7 +27,7 @@ final class ChunkInputStream extends InputStream {
 
     public int read() throws IOException {
         if (offset < len) {
-            return buf[offset++];
+            return (buf[offset++] & 0xff);
         }
         while(true) {
             if (current.next == null && part.parsed) {     // TODO sync or volatile
