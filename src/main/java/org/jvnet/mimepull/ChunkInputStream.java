@@ -26,27 +26,19 @@ final class ChunkInputStream extends InputStream {
     }
 
     public int read() throws IOException {
-        if (offset < len) {
-            return (buf[offset++] & 0xff);
-        }
-        while(true) {
-            if (current.next == null && part.parsed) {     // TODO sync or volatile
-                return -1;
-            }
-            if (current.next == null)
+        while(offset==len) {
+            while(current.next==null || !part.parsed)
                 msg.makeProgress();
-            else
-                break;
+            current = current.next;
+
+            if(current==null)
+                return -1;
+            
+            this.offset = 0;
+            this.len = current.data.size();
         }
-        current = current.next;
-        assert current != null;
-        this.offset = 0;
-        this.len = current.data.size();
-        buf = current.data.read();
-        if (offset < len) {
-            return buf[offset++];
-        }
-        return -1;
+
+        return (buf[offset++] & 0xff);
     }
 
 }
