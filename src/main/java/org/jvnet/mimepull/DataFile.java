@@ -56,7 +56,6 @@ final class DataFile {
     }
 
     /**
-     * TODO synchronization for two invocations of {@link MIMEPart#read() }
      * Read data from the given file pointer position.
      *
      * @param pointer read position
@@ -64,7 +63,7 @@ final class DataFile {
      * @param offset the start offset of the data.
      * @param length of data that needs to be read
      */
-    void read(long pointer, byte[] buf, int offset, int length ) {
+    synchronized void read(long pointer, byte[] buf, int offset, int length ) {
         try {
             raf.seek(pointer);
             raf.readFully(buf, offset, length);
@@ -84,7 +83,6 @@ final class DataFile {
     }
 
     /**
-     * TODO synchronization for two invocations of {@link MIMEPart#read()}
      * Write data to the file
      *
      * @param data that needs to written to a file
@@ -93,7 +91,7 @@ final class DataFile {
      * @return file pointer before the write operation(or at which the
      *         data is written)
      */
-    long writeTo(byte[] data, int offset, int length) {
+    synchronized long writeTo(byte[] data, int offset, int length) {
         try {
             long temp = writePointer;
             raf.seek(writePointer);
