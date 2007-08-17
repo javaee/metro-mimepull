@@ -49,7 +49,7 @@ final class DataFile {
      */
     InputStream getInputStream() {
         try {
-            return new FileInputStream(file);
+            return new DirectInputStream(this);
         } catch(FileNotFoundException fe) {
             throw new MIMEParsingException(fe);
         }
@@ -102,6 +102,23 @@ final class DataFile {
             return temp;
         } catch(IOException ioe) {
             throw new MIMEParsingException(ioe);
+        }
+    }
+
+    /**
+     * Keeps {@link DataFile} from garbage collected when
+     * someone is reading it.
+     */
+    private static final class DirectInputStream extends FilterInputStream {
+        private DataFile parent;
+        public DirectInputStream(DataFile parent) throws FileNotFoundException {
+            super(new FileInputStream(parent.file));
+            this.parent = parent;
+        }
+
+        public void close() throws IOException {
+            super.close();
+            parent = null;
         }
     }
 }

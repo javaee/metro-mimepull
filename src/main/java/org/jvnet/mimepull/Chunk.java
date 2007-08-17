@@ -6,8 +6,8 @@ import java.nio.ByteBuffer;
  * @author Kohsuke Kawaguchi
  */
 final class Chunk {
-    Chunk next;
-    Data data;
+    volatile Chunk next;
+    volatile Data data;
 
     public Chunk(Data data) {
         this.data = data;
