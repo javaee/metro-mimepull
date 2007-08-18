@@ -146,6 +146,7 @@ public class DataHead {
 
             sz = Math.min(sz, len-offset);
             System.arraycopy(buf,offset,b,off,sz);
+            offset += sz;
             return sz;
         }
 

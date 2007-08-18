@@ -44,6 +44,8 @@ import org.jvnet.mimepull.MIMEMessage;
 import org.jvnet.mimepull.MIMEConfig;
 import org.jvnet.mimepull.MIMEPart;
 
+import javax.imageio.ImageIO;
+
 
 /**
  * @author Jitendra Kotamraju
@@ -60,6 +62,24 @@ public class ParsingTest extends TestCase {
         assertEquals(2, parts.size());
         assertEquals("139912840220.1065629194743.IBM.WEBSERVICES@ibm-7pr28r4m35k", parts.get(0).getContentId());
         assertEquals("1351327060508.1065629194423.IBM.WEBSERVICES@ibm-7pr28r4m35k", parts.get(1).getContentId());
+
+        {
+        byte[] buf = new byte[8192];
+        InputStream part0 = parts.get(0).read();
+        int len = part0.read(buf, 0, buf.length);
+        String str = new  String(buf, 0, len);
+        assertTrue(str.startsWith("<soapenv:Envelope"));
+        assertTrue(str.endsWith("</soapenv:Envelope>"));
+        part0.close();
+        }
+
+        {
+        InputStream part1 = parts.get(1).read();
+        assertEquals((byte)part1.read(), (byte)0xff);
+        assertEquals((byte)part1.read(), (byte)0xd8);
+        //ImageIO.read(part1);
+        part1.close();
+        }
     }
 
     public void testMsg2() throws Exception {
@@ -84,6 +104,32 @@ public class ParsingTest extends TestCase {
         assertEquals(2, parts.size());
         assertEquals("soapPart", parts.get(0).getContentId());
         assertEquals("attachmentPart", parts.get(1).getContentId());
+
+        {
+        byte[] buf = new byte[18];
+        InputStream part0 = parts.get(0).read();
+        int len = part0.read(buf, 0, buf.length);
+        String str = new  String(buf, 0, len);
+        assertTrue(str.startsWith("<SOAP-ENV:Envelope"));
+
+        assertEquals(' ', (byte)part0.read());
+
+        buf = new byte[8192];
+        len = part0.read(buf, 0, buf.length);
+        str = new  String(buf, 0, len);
+        assertTrue(str.endsWith("</SOAP-ENV:Envelope>"));
+        part0.close();
+        }
+
+        {
+        byte[] buf = new byte[8192];
+        InputStream part1 = parts.get(1).read();
+        int len = part1.read(buf, 0, buf.length);
+        String str = new  String(buf, 0, len);
+        assertTrue(str.startsWith("<?xml version"));
+        assertTrue(str.endsWith("</Envelope>\n"));
+        part1.close();
+        }
     }
 
     public void testEmptyPart() throws Exception {
