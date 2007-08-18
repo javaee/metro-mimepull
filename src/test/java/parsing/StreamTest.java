@@ -57,6 +57,7 @@ public class StreamTest extends TestCase {
             assertEquals((byte)('A'+(partNo+i++)%26), (byte)ch);
         }
         assertEquals(size, i);
+        in.close();
     }
 
     /*

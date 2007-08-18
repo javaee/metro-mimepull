@@ -16,12 +16,11 @@ final class Chunk {
     /**
      * Creates a new chunk and adds to linked list.
      *
-     * @param head of the linked list
-     * @param part MIME part for which data is got
+     * @param dataHead of the linked list
      * @param buf MIME part partial data
      * @return created chunk
      */
-    public Chunk createNext(Chunk head, MIMEPart part, ByteBuffer buf) {
-        return next = new Chunk(data.createNext(head, buf, part));
+    public Chunk createNext(DataHead dataHead, ByteBuffer buf) {
+        return next = new Chunk(data.createNext(dataHead, buf));
     }
 }

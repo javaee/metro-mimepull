@@ -52,34 +52,21 @@ import java.util.List;
  */
 public class MIMEPart {
 
-    /**
-     * Linked list to keep the part's content
-     */
-    Chunk head, tail;
-
-    /**
-     * If the part is stored in a file, non-null.
-     *
-     * If head is non-null, then we have the whole part in the file,
-     * otherwise the file is only partial.
-     */
-    DataFile dataFile;
-
     private volatile InternetHeaders headers;
     private volatile String contentId;
     private String contentType;
     volatile boolean parsed;    // part is parsed or not
-    private final MIMEMessage msg;
-    private final MIMEConfig config;
+    final MIMEMessage msg;
+    private final DataHead dataHead;
 
-    MIMEPart(MIMEMessage msg, MIMEConfig config) {
+    MIMEPart(MIMEMessage msg) {
         this.msg = msg;
-        this.config = config;
+        this.dataHead = new DataHead(this);
     }
 
-    MIMEPart(MIMEMessage msg, MIMEConfig config, String contentId) {
-        this(msg, config);
-        this.contentId = contentId;
+    MIMEPart(MIMEMessage msg, String contentId) {
+        this(msg);
+        this.contentId = contentId;   
     }
 
     /**
@@ -92,23 +79,7 @@ public class MIMEPart {
      * @return data for the part's content
      */
     public InputStream read() {
-        // Have the complete data on the file system
-        if (parsed && dataFile != null && head != null) {
-            return dataFile.getInputStream();
-        }
-
-        // Trigger parsing for the part
-        while(tail == null) {
-            if (!msg.makeProgress()) {
-                throw new IllegalStateException("No such content ID: "+contentId);
-            }
-        }
-
-        if (head == null) {
-            throw new IllegalStateException("Already read. Probably readOnce() is called before.");
-        }
-
-        return new ChunkInputStream(msg, this, head);
+        return dataHead.read();
     }
     
 
@@ -125,9 +96,7 @@ public class MIMEPart {
      * @return data for the part's content
      */
     public InputStream readOnce() {
-        InputStream in = read();
-        head = null;
-        return in;
+        return dataHead.readOnce();
     }
 
     public void moveTo(File f) {
@@ -225,11 +194,7 @@ public class MIMEPart {
      * @param buf content data for the part
      */
     void addBody(ByteBuffer buf) {
-        if (tail!=null) {
-            tail = tail.createNext(head, this, buf);
-        } else {
-            head = tail = new Chunk(new MemoryData(buf, config));
-        }
+        dataHead.addBody(buf);
     }
 
     /**
@@ -238,6 +203,7 @@ public class MIMEPart {
      */
     void doneParsing() {
         parsed = true;
+        dataHead.doneParsing();
     }
 
     /**

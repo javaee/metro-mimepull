@@ -47,7 +47,7 @@ import java.nio.ByteBuffer;
  */
 public class MIMEMessage {
     private final MIMEParser parser;
-    private final MIMEConfig config;
+    MIMEConfig config;
 
     private final List<MIMEPart> partsList;
     private final Map<String, MIMEPart> partsMap;
@@ -97,7 +97,7 @@ public class MIMEMessage {
         }
         if (part == null) {
             // Parsing will done lazily and will be driven by reading the part
-            part = new MIMEPart(this, config);
+            part = new MIMEPart(this);
             partsList.add(index, part);
         }
         return part;
@@ -119,7 +119,7 @@ public class MIMEMessage {
         }
         if (part == null) {
             // Parsing is done lazily and is driven by reading the part
-            part = new MIMEPart(this, config, contentId);
+            part = new MIMEPart(this, contentId);
             partsMap.put(contentId, part);
         }
         return part;

@@ -6,9 +6,6 @@ import java.io.*;
  * Use {@link RandomAccessFile} for concurrent access of read
  * and write partial part's content.
  *
- * TODO Should we worry about RandomAccessFile.close(). But if
- * TODO we close(), then we cannot do read or write().
- *
  * TODO when do we delete this file ??
  *
  * @author Kohsuke Kawaguchi
@@ -30,7 +27,6 @@ final class DataFile {
     }
 
     /**
-     * TODO When should we call this ? When all the data is in the file,
      * there is no point in calling read(), write(). Directly can use
      * {#getInputStream()}
      */
@@ -43,12 +39,12 @@ final class DataFile {
     }
 
     /**
-     * TODO should we raf.close() before returning the stream
      *
      * @return
      */
     InputStream getInputStream() {
         try {
+            close();
             return new DirectInputStream(this);
         } catch(FileNotFoundException fe) {
             throw new MIMEParsingException(fe);

@@ -38,10 +38,9 @@ interface Data {
      * Factory method to create a Data. The implementation could
      * be file based one or memory based one.
      *
-     * @param head start of the linked list of data objects
+     * @param dataHead start of the linked list of data objects
      * @param buf contains partial content for a part
-     * @param part for which a Data object is created
      * @return Data
      */
-    Data createNext(Chunk head, ByteBuffer buf, MIMEPart part);
+    Data createNext(DataHead dataHead, ByteBuffer buf);
 }

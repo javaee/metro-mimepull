@@ -43,7 +43,7 @@ final class FileData implements Data {
     /*
      * Always create FileData
      */
-    public Data createNext(Chunk head, ByteBuffer buf, MIMEPart part) {
+    public Data createNext(DataHead dataHead, ByteBuffer buf) {
         return new FileData(file, buf);
     }
 }

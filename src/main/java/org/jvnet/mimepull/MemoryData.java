@@ -36,36 +36,25 @@ final class MemoryData implements Data {
 
     /**
      * 
-     * @param head
+     * @param dataHead
      * @param buf
-     * @param part
      * @return
      */
-    public Data createNext(Chunk head, ByteBuffer buf, MIMEPart part) {
-        // TODO need to keep counter on part ??
-        int counter = 0;
-        while(head != null) {
-            counter += head.data.size();
-            head = head.next;
-        }
-
-        if (counter >= config.inMemorySize) {
+    public Data createNext(DataHead dataHead, ByteBuffer buf) {
+        if (dataHead.inMemory >= config.inMemorySize) {
             try {
-                part.dataFile = new DataFile(File.createTempFile("MIME", "att"));
+                dataHead.dataFile = new DataFile(File.createTempFile("MIME", "att"));
             } catch(IOException ioe) {
                 throw new MIMEParsingException(ioe);
             }
 
-            if (part.head != null) {
-                long pointer = 0;
-                // TODO: turn the whole thing to File from the byte 0
-                for(Chunk c=part.head; c != null; c=c.next) {
-                    c.data.writeTo(part.dataFile);
-                    c.data = new FileData(part.dataFile, pointer, len);
-                    pointer += len;
+            if (dataHead.head != null) {
+                for(Chunk c=dataHead.head; c != null; c=c.next) {
+                    long pointer = c.data.writeTo(dataHead.dataFile);
+                    c.data = new FileData(dataHead.dataFile, pointer, len);
                 }
             }
-            return new FileData(part.dataFile, buf);
+            return new FileData(dataHead.dataFile, buf);
         } else {
             return new MemoryData(buf, config);
         }
