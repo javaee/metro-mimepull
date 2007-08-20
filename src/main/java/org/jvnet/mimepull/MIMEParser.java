@@ -258,7 +258,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
      */
     private ByteBuffer adjustBuf(int chunkSize, int remaining) {
         assert buf != null;
-        assert chunkSize > 0;
+        assert chunkSize >= 0;
         assert remaining >= 0;
 
         byte[] temp = buf;
