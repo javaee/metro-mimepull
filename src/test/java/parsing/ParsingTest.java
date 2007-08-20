@@ -142,6 +142,21 @@ public class ParsingTest extends TestCase {
         assertEquals(2, parts.size());
         assertEquals("soapPart", parts.get(0).getContentId());
         assertEquals("attachmentPart", parts.get(1).getContentId());
+        {
+            InputStream is = parts.get(0).read();
+            while(is.read() != -1) {
+                fail("There should be any bytes since this is empty part");
+            }
+        }
+        {
+            byte[] buf = new byte[8192];
+            InputStream part1 = parts.get(1).read();
+            int len = part1.read(buf, 0, buf.length);
+            String str = new  String(buf, 0, len);
+            assertTrue(str.startsWith("<?xml version"));
+            assertTrue(str.endsWith("</Envelope>\n"));
+            part1.close();
+        }
     }
 
     public void testNoHeaders() throws Exception {

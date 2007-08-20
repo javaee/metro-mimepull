@@ -15,9 +15,25 @@ import org.jvnet.mimepull.MIMEPart;
  */
 public class StreamTest extends TestCase {
 
+    public void testOrderRead() throws Exception {
+        String boundary = "boundary";
+        int size = 123456789;
+        MIMEConfig config = new MIMEConfig(false, 8192, 48000);
+        MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);
+
+        MIMEPart partA = mm.getPart("partA");
+        verifyPart(partA.read(), 0, size);
+
+        MIMEPart partB = mm.getPart("partB");
+        verifyPart(partB.read(), 1, size);
+
+        MIMEPart partC = mm.getPart("partC");
+        verifyPart(partC.read(), 2, size);
+    }
+
     // Parts are accessed in order. The data is accessed using readOnce()
     // and there shouldn't be any data stored in temp files.
-    public void testOrder() throws Exception {
+    public void testOrderReadOnce() throws Exception {
         String boundary = "boundary";
         int size = 123456789;
         MIMEConfig config = new MIMEConfig(false, 8192, 48000);
@@ -35,7 +51,24 @@ public class StreamTest extends TestCase {
 
     // partB, partA, partC are accessed in that order. Then partA should
     // go to disk. partB, and partC are accessed from in-memory
-    public void testOutofOrder() throws Exception {
+    public void testOutofOrderRead() throws Exception {
+        String boundary = "boundary";
+        int size = 12345678;
+        MIMEConfig config = new MIMEConfig(false, 1024, 8192);
+        MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);
+
+        MIMEPart partA = mm.getPart("partA");
+        MIMEPart partB = mm.getPart("partB");
+        MIMEPart partC = mm.getPart("partC");
+
+        verifyPart(partB.read(), 1, size);
+        verifyPart(partA.read(), 0, size);
+        verifyPart(partC.read(), 2, size);
+    }
+
+    // partB, partA, partC are accessed in that order. Then partA should
+    // go to disk. partB, and partC are accessed from in-memory
+    public void testOutofOrderReadOnce() throws Exception {
         String boundary = "boundary";
         int size = 12345678;
         MIMEConfig config = new MIMEConfig(false, 1024, 8192);
@@ -50,6 +83,7 @@ public class StreamTest extends TestCase {
         verifyPart(partC.readOnce(), 2, size);
     }
 
+    /*
     private void verifyPart(InputStream in, int partNo, int size) throws Exception {
         int i = 0;
         int ch;
@@ -57,6 +91,21 @@ public class StreamTest extends TestCase {
             assertEquals((byte)('A'+(partNo+i++)%26), (byte)ch);
         }
         assertEquals(size, i);
+        in.close();
+    }
+    */
+
+    private void verifyPart(InputStream in, int partNo, int size) throws Exception {
+        byte[] buf = new byte[8192];
+        int total = 0;
+        int len;
+        while((len=in.read(buf, 0, buf.length)) != -1) {
+            for(int i=0; i < len; i++) {
+                assertEquals((byte)('A'+(partNo+total+i)%26), buf[i]);
+            }
+            total += len;
+        }
+        assertEquals(size, total);
         in.close();
     }
 

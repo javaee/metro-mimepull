@@ -89,6 +89,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
     private final int capacity;
     private byte[] buf;
     private int len;
+    private boolean bol;        // beginning of the line
 
     MIMEParser(InputStream in, String boundary, MIMEConfig config) {
         this.in = in;
@@ -135,10 +136,12 @@ class MIMEParser implements Iterable<MIMEEvent> {
                 case HEADERS :
                     InternetHeaders ih = readHeaders();
                     state = STATE.BODY;
+                    bol = true;
                     return new MIMEEvent.Headers(ih);
 
                 case BODY :
                     ByteBuffer buf = readBody();
+                    bol = false;
                     return new MIMEEvent.Content(buf);
 
                 case END_PART :
@@ -201,7 +204,9 @@ class MIMEParser implements Iterable<MIMEEvent> {
         // Found boundary.
         // Is it at the start of a line ?
         int chunkLen = start;
-        if (start > 0 && (buf[start-1] == '\n' || buf[start-1] =='\r')) {
+        if (bol && start == 0) {
+            // nothing to do
+        } else if (start > 0 && (buf[start-1] == '\n' || buf[start-1] =='\r')) {
             --chunkLen;
             if (buf[start-1] == '\n' && start >1 && buf[start-2] == '\r') {
                 --chunkLen;
