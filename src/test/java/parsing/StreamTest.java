@@ -83,6 +83,33 @@ public class StreamTest extends TestCase {
         verifyPart(partC.readOnce(), 2, size);
     }
 
+    // MIMEPart.read() is called twice
+    public void testOutofOrderMultipleRead() throws Exception {
+        String boundary = "boundary";
+        final int size = 12345678;
+        MIMEConfig config = new MIMEConfig(false, 1024, 8192);
+        MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);
+
+        final MIMEPart partA = mm.getPart("partA");
+        MIMEPart partB = mm.getPart("partB");
+        MIMEPart partC = mm.getPart("partC");
+
+        verifyPart(partB.readOnce(), 1, size);
+        for(int i=0; i < 2; i++) {
+            new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        verifyPart(partA.read(), 0, size);
+                    } catch(Exception e) {
+                        fail();
+                    }
+                }
+            }).start();
+        }
+        verifyPart(partC.readOnce(), 2, size);
+    }
+
+
     /*
     private void verifyPart(InputStream in, int partNo, int size) throws Exception {
         int i = 0;
