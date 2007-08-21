@@ -46,24 +46,25 @@ import java.nio.ByteBuffer;
  * @author Jitendra Kotamraju
  */
 public class MIMEMessage {
-    private final MIMEParser parser;
     MIMEConfig config;
 
     private final List<MIMEPart> partsList;
     private final Map<String, MIMEPart> partsMap;
     private final Iterator<MIMEEvent> it;
-    private boolean parsed = false;
+    private boolean parsed;     // true when entire message is parsed
+    private MIMEPart currentPart;
+    private int currentIndex;
 
     /**
+     * Creates a MIME message from the content's stream.
      *
-     *
-     * @param in
+     * @param in MIME message stream
      * @param boundary the separator for parts(pass it without --)
-     * @param config
+     * @param config various configuration parameters
      */
     public MIMEMessage(InputStream in, String boundary, MIMEConfig config) {
         this.config = config;
-        parser = new MIMEParser(in, boundary, config);
+        MIMEParser parser = new MIMEParser(in, boundary, config);
         it = parser.iterator();
 
         partsList = new ArrayList<MIMEPart>();
@@ -71,11 +72,14 @@ public class MIMEMessage {
     }
 
     /**
-     * TODO
-     * @return
+     * Gets all the attachments by parsing the entire MIME message. Avoid
+     * this if possible since it is an expensive operation.
+     *
+     * @return list of attachments.
      */
     public List<MIMEPart> getAttachments() {
         if (!parsed) {
+            parseAll();
         }
         return partsList;
     }
@@ -130,12 +134,12 @@ public class MIMEMessage {
      * Parses the whole MIME message eagerly
      */
     public void parseAll() {
-        while(makeProgress())
-            ;
+        while(makeProgress()) {
+            // Nothing to do
+        }
     }
 
-    private MIMEPart currentPart = null;
-    private int currentIndex = 0;
+
 
     /**
      * Parses the MIME message in a pull fashion.
@@ -170,10 +174,10 @@ public class MIMEMessage {
                 if (listPart == null && mapPart == null) {
                     currentPart = getPart(cid);
                     partsList.add(currentIndex, currentPart);
-                } else if (listPart == null && mapPart != null) {
+                } else if (listPart == null) {
                     currentPart = mapPart;
                     partsList.add(currentIndex, mapPart);
-                } else if (listPart != null && mapPart == null) {
+                } else if (mapPart == null) {
                     currentPart = listPart;
                     currentPart.setContentId(cid);
                     partsMap.put(cid, currentPart);
