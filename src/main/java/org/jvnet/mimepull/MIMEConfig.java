@@ -41,18 +41,70 @@ package org.jvnet.mimepull;
 public class MIMEConfig {
 
     // Parses the entire message eagerly
-    final boolean parseEagerly;
+    boolean parseEagerly;
 
     // Approximate Chunk size
-    final int chunkSize;
+    int chunkSize;
 
-    // Maximum in-memory data
-    final int inMemorySize;
+    // Maximum in-memory data per attachment
+    int inMemorySize;
 
-    public MIMEConfig(boolean parseEagerly, int chunkSize, int inMemorySize ) {
+    // Do not store to disk
+    boolean onlyMemory;
+
+    // temp Dir to store large files
+    String dir;
+
+    private MIMEConfig(boolean parseEagerly, int chunkSize, int inMemorySize, boolean onlyMemory, String dir) {
         this.parseEagerly = parseEagerly;
         this.chunkSize = chunkSize;
         this.inMemorySize = inMemorySize;
+        this.onlyMemory = onlyMemory;
+        this.dir = dir;
+    }
+
+    public MIMEConfig() {
+        this(false, 8192, 1048576, false, null);
+    }
+
+    public boolean isParseEagerly() {
+        return parseEagerly;
+    }
+
+    public void setParseEagerly(boolean parseEagerly) {
+        this.parseEagerly = parseEagerly;
+    }
+
+    public int getChunkSize() {
+        return chunkSize;
+    }
+
+    public void setChunkSize(int chunkSize) {
+        this.chunkSize = chunkSize;
+    }
+
+    public int getInMemorySize() {
+        return inMemorySize;
+    }
+
+    public void setInMemorySize(int inMemorySize) {
+        this.inMemorySize = inMemorySize;
+    }
+
+    public boolean isOnlyMemory() {
+        return onlyMemory;
+    }
+
+    public void setOnlyMemory(boolean onlyMemory) {
+        this.onlyMemory = onlyMemory;
+    }
+
+    public String getDir() {
+        return dir;
+    }
+
+    public void setDir(String dir) {
+        this.dir = dir;
     }
 
 }

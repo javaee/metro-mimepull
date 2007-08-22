@@ -56,6 +56,13 @@ public class MIMEMessage {
     private int currentIndex;
 
     /**
+     * @see MIMEMessage(InputStream, String MIMEConfig)
+     */
+    public MIMEMessage(InputStream in, String boundary) {
+        this(in, boundary, new MIMEConfig());
+    }
+
+    /**
      * Creates a MIME message from the content's stream.
      *
      * @param in MIME message stream

@@ -18,7 +18,7 @@ public class StreamTest extends TestCase {
     public void testOrderRead() throws Exception {
         String boundary = "boundary";
         int size = 123456789;
-        MIMEConfig config = new MIMEConfig(false, 8192, 48000);
+        MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);
 
         MIMEPart partA = mm.getPart("partA");
@@ -36,7 +36,7 @@ public class StreamTest extends TestCase {
     public void testOrderReadOnce() throws Exception {
         String boundary = "boundary";
         int size = 123456789;
-        MIMEConfig config = new MIMEConfig(false, 8192, 48000);
+        MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);
 
         MIMEPart partA = mm.getPart("partA");
@@ -54,7 +54,7 @@ public class StreamTest extends TestCase {
     public void testOutofOrderRead() throws Exception {
         String boundary = "boundary";
         int size = 12345678;
-        MIMEConfig config = new MIMEConfig(false, 1024, 8192);
+        MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);
 
         MIMEPart partA = mm.getPart("partA");
@@ -71,7 +71,7 @@ public class StreamTest extends TestCase {
     public void testOutofOrderReadOnce() throws Exception {
         String boundary = "boundary";
         int size = 12345678;
-        MIMEConfig config = new MIMEConfig(false, 1024, 8192);
+        MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);
 
         MIMEPart partA = mm.getPart("partA");
@@ -87,7 +87,7 @@ public class StreamTest extends TestCase {
     public void testOutofOrderMultipleRead() throws Exception {
         String boundary = "boundary";
         final int size = 12345678;
-        MIMEConfig config = new MIMEConfig(false, 1024, 8192);
+        MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);
 
         final MIMEPart partA = mm.getPart("partA");

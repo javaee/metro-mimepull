@@ -55,7 +55,7 @@ public class ParsingTest extends TestCase {
     public void testMsg() throws Exception {
         InputStream in = getClass().getResourceAsStream("../msg.txt");
         String boundary = "----=_Part_4_910054940.1065629194743";
-        MIMEConfig config = new MIMEConfig(false, 1024, 512);
+        MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(in, boundary , config);
         mm.parseAll();
         List<MIMEPart> parts = mm.getAttachments();
@@ -85,7 +85,7 @@ public class ParsingTest extends TestCase {
     public void testMsg2() throws Exception {
         InputStream in = getClass().getResourceAsStream("../msg2.txt");
         String boundary = "----=_Part_1_807283631.1066069460327";
-        MIMEConfig config = new MIMEConfig(false, 1024, 512);
+        MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(in, boundary , config);
         mm.parseAll();
         List<MIMEPart> parts = mm.getAttachments();
@@ -97,7 +97,7 @@ public class ParsingTest extends TestCase {
     public void testMessage1() throws Exception {
         InputStream in = getClass().getResourceAsStream("../message1.txt");
         String boundary = "----=_Part_7_10584188.1123489648993";
-        MIMEConfig config = new MIMEConfig(false, 1024, 512);
+        MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(in, boundary , config);
         mm.parseAll();
         List<MIMEPart> parts = mm.getAttachments();
@@ -135,7 +135,7 @@ public class ParsingTest extends TestCase {
     public void testEmptyPart() throws Exception {
         InputStream in = getClass().getResourceAsStream("../emptypart.txt");
         String boundary = "----=_Part_7_10584188.1123489648993";
-        MIMEConfig config = new MIMEConfig(false, 1024, 512);
+        MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(in, boundary , config);
         mm.parseAll();
         List<MIMEPart> parts = mm.getAttachments();
@@ -162,7 +162,7 @@ public class ParsingTest extends TestCase {
     public void testNoHeaders() throws Exception {
         InputStream in = getClass().getResourceAsStream("../noheaders.txt");
         String boundary = "----=_Part_7_10584188.1123489648993";
-        MIMEConfig config = new MIMEConfig(false, 1024, 512);
+        MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(in, boundary , config);
         mm.parseAll();
         List<MIMEPart> parts = mm.getAttachments();
@@ -174,7 +174,7 @@ public class ParsingTest extends TestCase {
     public void testOneByte() throws Exception {
         InputStream in = getClass().getResourceAsStream("../onebyte.txt");
         String boundary = "boundary";
-        MIMEConfig config = new MIMEConfig(false, 1024, 512);
+        MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(in, boundary , config);
         mm.parseAll();
         List<MIMEPart> parts = mm.getAttachments();
@@ -186,7 +186,7 @@ public class ParsingTest extends TestCase {
     public void testBoundaryWhiteSpace() throws Exception {
         InputStream in = getClass().getResourceAsStream("../boundary-lwsp.txt");
         String boundary = "boundary";
-        MIMEConfig config = new MIMEConfig(false, 1024, 512);
+        MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(in, boundary , config);
         mm.parseAll();
         List<MIMEPart> parts = mm.getAttachments();
@@ -198,7 +198,7 @@ public class ParsingTest extends TestCase {
     public void testBoundaryInBody() throws Exception {
         InputStream in = getClass().getResourceAsStream("../boundary-in-body.txt");
         String boundary = "boundary";
-        MIMEConfig config = new MIMEConfig(false, 1024, 512);
+        MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(in, boundary , config);
         mm.parseAll();
         List<MIMEPart> parts = mm.getAttachments();
