@@ -38,6 +38,7 @@ package org.jvnet.mimepull;
 import java.io.InputStream;
 import java.util.*;
 import java.nio.ByteBuffer;
+import java.io.IOException;
 
 /**
  * Represents MIME message. MIME message parsing is done lazily using a
@@ -48,6 +49,7 @@ import java.nio.ByteBuffer;
 public class MIMEMessage {
     MIMEConfig config;
 
+    private final InputStream in;
     private final List<MIMEPart> partsList;
     private final Map<String, MIMEPart> partsMap;
     private final Iterator<MIMEEvent> it;
@@ -70,6 +72,7 @@ public class MIMEMessage {
      * @param config various configuration parameters
      */
     public MIMEMessage(InputStream in, String boundary, MIMEConfig config) {
+        this.in = in;
         this.config = config;
         MIMEParser parser = new MIMEParser(in, boundary, config);
         it = parser.iterator();
@@ -207,6 +210,11 @@ public class MIMEMessage {
 
             case END_MESSAGE :
                 parsed = true;
+                try {
+                    in.close();
+                } catch(IOException ioe) {
+                    throw new MIMEParsingException(ioe);
+                }
                 break;
 
             default :
