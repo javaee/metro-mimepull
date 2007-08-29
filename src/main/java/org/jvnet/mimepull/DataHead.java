@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
  *
  * @author Jitendra Kotamraju
  */
-public class DataHead {
+final class DataHead {
 
     /**
      * Linked list to keep the part's content
