@@ -46,7 +46,7 @@ import java.util.Collection;
  *
  * @author Kohsuke Kawaguchi
  */
-public final class FinalArrayList<T> extends ArrayList<T> {
+final class FinalArrayList<T> extends ArrayList<T> {
     public FinalArrayList(int initialCapacity) {
         super(initialCapacity);
     }
