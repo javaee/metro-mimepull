@@ -35,6 +35,11 @@ final class DataHead {
     boolean readOnce;
     volatile long inMemory;                 // TODO sync + and -
 
+    /**
+     * Used only for debugging. This records where readOnce() is called.
+     */
+    private Throwable consumedAt;
+
     DataHead(MIMEPart part) {
         this.part = part;
     }
@@ -93,6 +98,24 @@ final class DataHead {
         return new ReadMultiStream();
     }
 
+    /**
+     * Used for an assertion. Returns true when readOnce() is not already called.
+     * or otherwise throw an exception.
+     *
+     * <p>
+     * Calling this method also marks the stream as 'consumed'
+     *
+     * @return true if readOnce() is not called before
+     */
+    private boolean unconsumed() {
+        if (consumedAt != null) {
+            AssertionError error = new AssertionError("readOnce() is already called before. See the nested exception from where it's called.");
+            error.initCause(consumedAt);
+            throw error;
+        }
+        consumedAt = new Exception().fillInStackTrace();
+        return true;
+    }
 
     /**
      * Can get the attachment part's content only once. The content
@@ -107,6 +130,7 @@ final class DataHead {
      * @return data for the part's content
      */
     public InputStream readOnce() {
+        assert unconsumed();
         if (readOnce) {
             throw new IllegalStateException("readOnce() is called before. It can only be called once.");
         }
