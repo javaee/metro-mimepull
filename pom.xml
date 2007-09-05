@@ -8,8 +8,8 @@
   <name>MIME streaming extension</name>
   
   <scm>
-    <connection>scm:svn:https://svn.dev.java.net/svn/mimepull/tags/mimepull-1.0</connection>
-    <developerConnection>scm:svn:https://svn.dev.java.net/svn/mimepull/tags/mimepull-1.0</developerConnection>
+    <connection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/tags/mimepull-1.0</connection>
+    <developerConnection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/tags/mimepull-1.0</developerConnection>
     <url>https://jax-ws-commons.dev.java.net/source/browse/mimepull/tags/mimepull-1.0</url>
   </scm>
 
