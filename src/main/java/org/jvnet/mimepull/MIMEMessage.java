@@ -58,7 +58,7 @@ public class MIMEMessage {
     private int currentIndex;
 
     /**
-     * @see MIMEMessage(InputStream, String MIMEConfig)
+     * @see MIMEMessage(InputStream, String)
      */
     public MIMEMessage(InputStream in, String boundary) {
         this(in, boundary, new MIMEConfig());
