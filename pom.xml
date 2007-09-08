@@ -40,7 +40,7 @@
     </repository>
     <site>
       <id>local</id>
-      <url>file:../www/</url>
+      <url>file:./www/</url>
     </site>
   </distributionManagement>
 
