@@ -39,4 +39,4 @@ public void testOrder() {
 
 Implementation
 
-  MIME message parsing is done using pull-parsing, much similar to <a href="http://www.jcp.org/en/jsr/detail?id=173">StAX</a> in XML world. The MIMEParts are constructed lazily, and parsing is triggered by applications while reading the attachment parts. MIMEConfig provides various configuration options to control parsing and storing MIME parts. It is also possible to read MIME parts in any order and multiple times, but doing so may create attachment parts on the file system.
+  MIME message parsing is done using pull-parsing, much similar to {{{http://www.jcp.org/en/jsr/detail?id=173}<<<StAX>>>}} in XML world. The MIMEParts are constructed lazily, and parsing is triggered by applications while reading the attachment parts. MIMEConfig provides various configuration options to control parsing and storing MIME parts. It is also possible to read MIME parts in any order and multiple times, but doing so may create attachment parts on the file system.
