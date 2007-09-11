@@ -79,6 +79,9 @@ public class MIMEMessage {
 
         partsList = new ArrayList<MIMEPart>();
         partsMap = new HashMap<String, MIMEPart>();
+        if (config.isParseEagerly()) {
+            parseAll();
+        }
     }
 
     /**

@@ -41,9 +41,15 @@ final class MemoryData implements Data {
      * @return
      */
     public Data createNext(DataHead dataHead, ByteBuffer buf) {
-        if (dataHead.inMemory >= config.inMemorySize) {
+        if (!config.isOnlyMemory() && dataHead.inMemory >= config.memoryThreshold) {
             try {
-                dataHead.dataFile = new DataFile(File.createTempFile("MIME", "att"));
+                String prefix = config.getTempFilePrefix();
+                String suffix = config.getTempFileSuffix();
+                File dir = config.getTempDir();
+                File tempFile = (dir == null)
+                        ? File.createTempFile(prefix, suffix)
+                        : File.createTempFile(prefix, suffix, dir);
+                dataHead.dataFile = new DataFile(tempFile);
             } catch(IOException ioe) {
                 throw new MIMEParsingException(ioe);
             }

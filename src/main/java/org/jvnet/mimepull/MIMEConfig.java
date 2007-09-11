@@ -35,10 +35,19 @@
  */
 package org.jvnet.mimepull;
 
+import java.io.File;
+import java.io.IOException;
+
 /**
+ * Configuration for MIME message parsing and storing.
+ *
  * @author Jitendra Kotamraju
  */
 public class MIMEConfig {
+
+    private static final int DEFAULT_CHUNK_SIZE = 8192;
+    private static final long DEFAULT_MEMORY_THRESHOLD = 1048576L;
+    private static final String DEFAULT_FILE_PREFIX = "MIME";
 
     // Parses the entire message eagerly
     boolean parseEagerly;
@@ -47,27 +56,33 @@ public class MIMEConfig {
     int chunkSize;
 
     // Maximum in-memory data per attachment
-    int inMemorySize;
+    long memoryThreshold;
 
     // Do not store to disk
     boolean onlyMemory;
 
     // temp Dir to store large files
-    String dir;
+    File tempDir;
+    String prefix;
+    String suffix;
 
-    private MIMEConfig(boolean parseEagerly, int chunkSize, int inMemorySize, boolean onlyMemory, String dir) {
+
+    private MIMEConfig(boolean parseEagerly, int chunkSize,
+                       long inMemoryThreshold, String dir, String prefix, String suffix) {
         this.parseEagerly = parseEagerly;
         this.chunkSize = chunkSize;
-        this.inMemorySize = inMemorySize;
-        this.onlyMemory = onlyMemory;
-        this.dir = dir;
+        this.memoryThreshold = inMemoryThreshold;
+        this.prefix = prefix;
+        this.suffix = suffix;
+        setDir(dir);
     }
 
     public MIMEConfig() {
-        this(false, 8192, 1048576, false, null);
+        this(false, DEFAULT_CHUNK_SIZE, DEFAULT_MEMORY_THRESHOLD, null,
+                DEFAULT_FILE_PREFIX, null);
     }
 
-    public boolean isParseEagerly() {
+    boolean isParseEagerly() {
         return parseEagerly;
     }
 
@@ -75,36 +90,69 @@ public class MIMEConfig {
         this.parseEagerly = parseEagerly;
     }
 
-    public int getChunkSize() {
+    int getChunkSize() {
         return chunkSize;
     }
 
-    public void setChunkSize(int chunkSize) {
+    void setChunkSize(int chunkSize) {
         this.chunkSize = chunkSize;
     }
 
-    public int getInMemorySize() {
-        return inMemorySize;
+    long getMemoryThreshold() {
+        return memoryThreshold;
     }
 
-    public void setInMemorySize(int inMemorySize) {
-        this.inMemorySize = inMemorySize;
+    /**
+     * If the attachment is greater than the threshold, it is
+     * written to the disk.
+     *
+     * @param memoryThreshold no of bytes per attachment
+     *        if -1, then the whole attachment is kept in memory
+     */
+    public void setMemoryThreshold(long memoryThreshold) {
+        this.memoryThreshold = memoryThreshold;
     }
 
-    public boolean isOnlyMemory() {
-        return onlyMemory;
+    boolean isOnlyMemory() {
+        return memoryThreshold == -1L;
     }
 
-    public void setOnlyMemory(boolean onlyMemory) {
-        this.onlyMemory = onlyMemory;
+    File getTempDir() {
+        return tempDir;
     }
 
-    public String getDir() {
-        return dir;
+    String getTempFilePrefix() {
+        return prefix;
     }
 
+    String getTempFileSuffix() {
+        return suffix;
+    }
+
+    /**
+     * @param dir
+     */
     public void setDir(String dir) {
-        this.dir = dir;
+        if (tempDir == null && dir != null && !dir.equals("")) {
+            tempDir = new File(dir);
+        }
+    }
+
+    /**
+     * Validates if it can create temporary files. Otherwise, it stores
+     * attachment contents in memory.
+     */
+    public void validate() {
+        if (!isOnlyMemory()) {
+            try {
+                File tempFile = (tempDir == null)
+                        ? File.createTempFile(prefix, suffix)
+                        : File.createTempFile(prefix, suffix, tempDir);
+                tempFile.delete();
+            } catch(Exception ioe) {
+                memoryThreshold = -1L;      // whole attachment will be in-memory
+            }
+        }
     }
 
 }
