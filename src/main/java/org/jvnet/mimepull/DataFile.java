@@ -6,8 +6,6 @@ import java.io.*;
  * Use {@link RandomAccessFile} for concurrent access of read
  * and write partial part's content.
  *
- * TODO when do we delete this file ??
- *
  * @author Kohsuke Kawaguchi
  * @author Jitendra Kotamraju
  */
@@ -72,7 +70,6 @@ final class DataFile {
         try {
             raf.close();
             file.renameTo(f);
-            raf = new RandomAccessFile(f, "r");
         } catch(IOException ioe) {
             throw new MIMEParsingException(ioe);
         }
@@ -115,4 +112,17 @@ final class DataFile {
             parent = null;
         }
     }
+
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+            raf.close();
+            file.delete();
+        } catch(Exception e) {
+            // Ignore all exceptions
+        } finally {
+            super.finalize();
+        }
+    }
+
 }
