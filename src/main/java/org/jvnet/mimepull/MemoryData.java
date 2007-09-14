@@ -49,6 +49,7 @@ final class MemoryData implements Data {
                 File tempFile = (dir == null)
                         ? File.createTempFile(prefix, suffix)
                         : File.createTempFile(prefix, suffix, dir);
+                tempFile.deleteOnExit();
                 dataHead.dataFile = new DataFile(tempFile);
             } catch(IOException ioe) {
                 throw new MIMEParsingException(ioe);
