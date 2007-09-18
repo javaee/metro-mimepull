@@ -81,6 +81,15 @@ public class MIMEPart {
     public InputStream read() {
         return dataHead.read();
     }
+
+    /**
+     * Cleans up any resources that are held by this part (for e.g. deletes
+     * the temp file that is used to serve this part's content). After
+     * calling this, one shouldn't call {@link #read()} or {@link #readOnce()}
+     */
+    public void close() {
+        dataHead.close();
+    }
     
 
     /**

@@ -63,6 +63,13 @@ final class DataHead {
         }
     }
 
+    void close() {
+        if (dataFile != null) {
+            head = tail = null;
+            dataFile.close();
+        }
+    }
+
 
     /**
      * Can get the attachment part's content multiple times. That means
