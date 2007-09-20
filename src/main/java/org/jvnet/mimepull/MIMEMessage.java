@@ -35,10 +35,12 @@
  */
 package org.jvnet.mimepull;
 
-import java.io.InputStream;
-import java.util.*;
-import java.nio.ByteBuffer;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 /**
  * Represents MIME message. MIME message parsing is done lazily using a
@@ -130,7 +132,7 @@ public class MIMEMessage {
      * @return attachemnt part
      */
     public MIMEPart getPart(String contentId) {
-        MIMEPart part = partsMap.get(contentId);
+        MIMEPart part = getDecodedCidPart(contentId);
         if (parsed && part == null) {
             throw new MIMEParsingException("There is no attachment part with Content-ID = "+contentId);
         }
@@ -138,6 +140,22 @@ public class MIMEMessage {
             // Parsing is done lazily and is driven by reading the part
             part = new MIMEPart(this, contentId);
             partsMap.put(contentId, part);
+        }
+        return part;
+    }
+
+    // this is required for Indigo interop, it writes content-id without escaping
+    private MIMEPart getDecodedCidPart(String cid) {
+        MIMEPart part = partsMap.get(cid);
+        if (part == null) {
+            if (cid.indexOf('%') != -1) {
+                try {
+                    String tempCid = URLDecoder.decode(cid, "utf-8");
+                    part = partsMap.get(tempCid);
+                } catch(UnsupportedEncodingException ue) {
+                    // Ignore it
+                }
+            }
         }
         return part;
     }
@@ -183,7 +201,7 @@ public class MIMEMessage {
                     cid = cid.substring(1,cid.length()-1);
                 }
                 MIMEPart listPart = (currentIndex < partsList.size()) ? partsList.get(currentIndex) : null;
-                MIMEPart mapPart = partsMap.get(cid);
+                MIMEPart mapPart = getDecodedCidPart(cid);
                 if (listPart == null && mapPart == null) {
                     currentPart = getPart(cid);
                     partsList.add(currentIndex, currentPart);
