@@ -1,7 +1,6 @@
 package org.jvnet.mimepull;
 
-import java.io.InputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 
 /**
@@ -23,17 +22,13 @@ final class DataHead {
 
     /**
      * If the part is stored in a file, non-null.
-     *
-     * If head is non-null, then we have the whole part in the file,
-     * otherwise the file is only partial.
      */
     DataFile dataFile;
 
     private final MIMEPart part;
-    private volatile int activeReads = 0;   // TODO sync + and -
 
     boolean readOnce;
-    volatile long inMemory;                 // TODO sync + and -
+    volatile long inMemory;
 
     /**
      * Used only for debugging. This records where readOnce() is called.
@@ -48,8 +43,7 @@ final class DataHead {
         synchronized(this) {
             inMemory += buf.limit();
         }
-
-        if (tail!=null) {
+        if (tail != null) {
             tail = tail.createNext(this, buf);
         } else {
             head = tail = new Chunk(new MemoryData(buf, part.msg.config));
@@ -57,9 +51,24 @@ final class DataHead {
     }
 
     void doneParsing() {
-        if (activeReads == 0 && dataFile != null) {
-            head = tail = null;
-            dataFile.close();
+    }
+
+    void moveTo(File f) {
+        if (dataFile != null) {
+            dataFile.renameTo(f);
+        } else {
+            try {
+                OutputStream os = new FileOutputStream(f);
+                InputStream in = readOnce();
+                byte[] buf = new byte[8192];
+                int len;
+                while((len=in.read(buf)) != -1) {
+                    os.write(buf, 0, len);
+                }
+                os.close();
+            } catch(IOException ioe) {
+                throw new MIMEParsingException(ioe);
+            }
         }
     }
 
@@ -84,23 +93,16 @@ final class DataHead {
         if (readOnce) {
             throw new IllegalStateException("readOnce() is called before, read() cannot be called later.");
         }
-        // Have the complete data on the file system
-        if (part.parsed && dataFile != null && activeReads == 0) {
-            return dataFile.getInputStream();
-        }
 
         // Trigger parsing for the part
         while(tail == null) {
             if (!part.msg.makeProgress()) {
-                throw new IllegalStateException("No such Part: "+part);
+                throw new IllegalStateException("No such MIME Part: "+part);
             }
         }
 
         if (head == null) {
             throw new IllegalStateException("Already read. Probably readOnce() is called before.");
-        }
-        synchronized(this) {
-            ++activeReads;
         }
         return new ReadMultiStream();
     }
@@ -142,17 +144,11 @@ final class DataHead {
             throw new IllegalStateException("readOnce() is called before. It can only be called once.");
         }
         readOnce = true;
-        if (part.parsed && dataFile != null && activeReads == 0) {
-            return dataFile.getInputStream();
-        }
         // Trigger parsing for the part
         while(tail == null) {
             if (!part.msg.makeProgress() && tail == null) {
                 throw new IllegalStateException("No such Part: "+part);
             }
-        }
-        synchronized(this) {
-            ++activeReads;
         }
         InputStream in = new ReadOnceStream();
         head = null;
@@ -183,9 +179,6 @@ final class DataHead {
 
         public int read() throws IOException {
             if (!fetch()) {
-                synchronized(this) {
-                    --activeReads;
-                }
                 return -1;
             }
             return (buf[offset++] & 0xff);

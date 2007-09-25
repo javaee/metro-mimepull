@@ -10,43 +10,19 @@ import java.io.*;
  * @author Jitendra Kotamraju
  */
 final class DataFile {
-    private File file;
-    private RandomAccessFile raf;
+    private WeakDataFile weak;
     private long writePointer;
 
     DataFile(File file) {
-        this.file = file;
-        try {
-            raf = new RandomAccessFile(file, "rw");
-        } catch(IOException ioe) {
-            throw new MIMEParsingException(ioe);
-        }
         writePointer=0;
-    }
-
-    /**
-     * there is no point in calling read(), write(). Directly can use
-     * {#getInputStream()}
-     */
-    void close() {
-        try {
-            raf.close();
-        } catch(IOException ioe) {
-            throw new MIMEParsingException(ioe);
-        }
+        weak = new WeakDataFile(this, file);
     }
 
     /**
      *
-     * @return
      */
-    InputStream getInputStream() {
-        try {
-            close();
-            return new DirectInputStream(this);
-        } catch(FileNotFoundException fe) {
-            throw new MIMEParsingException(fe);
-        }
+    void close() {
+        weak.close();
     }
 
     /**
@@ -58,21 +34,11 @@ final class DataFile {
      * @param length of data that needs to be read
      */
     synchronized void read(long pointer, byte[] buf, int offset, int length ) {
-        try {
-            raf.seek(pointer);
-            raf.readFully(buf, offset, length);
-        } catch(IOException ioe) {
-            throw new MIMEParsingException(ioe);
-        }
+        weak.read(pointer, buf, offset, length);
     }
 
     void renameTo(File f) {
-        try {
-            raf.close();
-            file.renameTo(f);
-        } catch(IOException ioe) {
-            throw new MIMEParsingException(ioe);
-        }
+        weak.renameTo(f);
     }
 
     /**
@@ -85,44 +51,9 @@ final class DataFile {
      *         data is written)
      */
     synchronized long writeTo(byte[] data, int offset, int length) {
-        try {
-            long temp = writePointer;
-            raf.seek(writePointer);
-            raf.write(data, offset, length);
-            writePointer = raf.getFilePointer();    // Update pointer for next write
-            return temp;
-        } catch(IOException ioe) {
-            throw new MIMEParsingException(ioe);
-        }
-    }
-
-    /**
-     * Keeps {@link DataFile} from garbage collected when
-     * someone is reading it.
-     */
-    private static final class DirectInputStream extends FilterInputStream {
-        private DataFile parent;
-        public DirectInputStream(DataFile parent) throws FileNotFoundException {
-            super(new FileInputStream(parent.file));
-            this.parent = parent;
-        }
-
-        public void close() throws IOException {
-            super.close();
-            parent = null;
-        }
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        try {
-            raf.close();
-            file.delete();
-        } catch(Exception e) {
-            // Ignore all exceptions
-        } finally {
-            super.finalize();
-        }
+        long temp = writePointer;
+        writePointer = weak.writeTo(writePointer, data, offset, length);
+        return temp;
     }
 
 }

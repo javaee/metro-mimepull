@@ -3,6 +3,7 @@ package org.jvnet.mimepull;
 import java.nio.ByteBuffer;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * Keeps the Part's partial content data in memory.
@@ -11,6 +12,8 @@ import java.io.IOException;
  * @author Jitendra Kotamraju
  */
 final class MemoryData implements Data {
+    private static final Logger LOGGER = Logger.getLogger(MemoryData.class.getName());
+
     private final byte[] data;
     private final int len;
     private final MIMEConfig config;
@@ -49,6 +52,7 @@ final class MemoryData implements Data {
                 File tempFile = (dir == null)
                         ? File.createTempFile(prefix, suffix)
                         : File.createTempFile(prefix, suffix, dir);
+                LOGGER.fine("Created temp file = "+tempFile);
                 dataHead.dataFile = new DataFile(tempFile);
             } catch(IOException ioe) {
                 throw new MIMEParsingException(ioe);

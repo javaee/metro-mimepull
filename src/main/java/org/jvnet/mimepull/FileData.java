@@ -33,7 +33,7 @@ final class FileData implements Data {
      * This shouldn't be called
      */
     public long writeTo(DataFile file) {
-        throw new UnsupportedOperationException();
+        throw new IllegalStateException();
     }
 
     public int size() {

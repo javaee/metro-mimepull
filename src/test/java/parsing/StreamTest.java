@@ -23,12 +23,15 @@ public class StreamTest extends TestCase {
 
         MIMEPart partA = mm.getPart("partA");
         verifyPart(partA.read(), 0, size);
+        partA.close();
 
         MIMEPart partB = mm.getPart("partB");
         verifyPart(partB.read(), 1, size);
+        partB.close();
 
         MIMEPart partC = mm.getPart("partC");
         verifyPart(partC.read(), 2, size);
+        partC.close();
     }
 
     // Parts are accessed in order. The data is accessed using readOnce()
@@ -41,12 +44,15 @@ public class StreamTest extends TestCase {
 
         MIMEPart partA = mm.getPart("partA");
         verifyPart(partA.readOnce(), 0, size);
+        partA.close();
 
         MIMEPart partB = mm.getPart("partB");
         verifyPart(partB.readOnce(), 1, size);
+        partB.close();
 
         MIMEPart partC = mm.getPart("partC");
         verifyPart(partC.readOnce(), 2, size);
+        partC.close();
     }
 
     // partB, partA, partC are accessed in that order. Then partA should
@@ -64,6 +70,10 @@ public class StreamTest extends TestCase {
         verifyPart(partB.read(), 1, size);
         verifyPart(partA.read(), 0, size);
         verifyPart(partC.read(), 2, size);
+
+        partA.close();
+        partB.close();
+        partC.close();
     }
 
     // partB, partA, partC are accessed in that order. Then partA should
@@ -79,8 +89,11 @@ public class StreamTest extends TestCase {
         MIMEPart partC = mm.getPart("partC");
 
         verifyPart(partB.readOnce(), 1, size);
+        partB.close();
         verifyPart(partA.readOnce(), 0, size);
+        partA.close();
         verifyPart(partC.readOnce(), 2, size);
+        partC.close();
     }
 
     // MIMEPart.read() is called twice
@@ -95,8 +108,10 @@ public class StreamTest extends TestCase {
         MIMEPart partC = mm.getPart("partC");
 
         verifyPart(partB.readOnce(), 1, size);
-        for(int i=0; i < 2; i++) {
-            new Thread(new Runnable() {
+        Thread[] threads = new Thread[2];
+
+        for(int i=0; i < threads.length; i++) {
+            threads[i] = new Thread(new Runnable() {
                 public void run() {
                     try {
                         verifyPart(partA.read(), 0, size);
@@ -104,9 +119,19 @@ public class StreamTest extends TestCase {
                         fail();
                     }
                 }
-            }).start();
+            });
+        }
+        for(int i=0; i < threads.length; i++) {
+            threads[i].start();
         }
         verifyPart(partC.readOnce(), 2, size);
+        for(int i=0; i < threads.length; i++) {
+            threads[i].join();
+        }
+
+        partA.close();
+        partB.close();
+        partC.close();
     }
 
 

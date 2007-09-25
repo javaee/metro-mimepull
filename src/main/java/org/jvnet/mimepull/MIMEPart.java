@@ -109,21 +109,7 @@ public class MIMEPart {
     }
 
     public void moveTo(File f) {
-        /*
-        if(tail==null) {
-            dataFile = new DataFile(f);
-            tail = head = new Chunk(new FileData(dataFile));
-        } else {
-            if(head==null)
-                throw new IllegalStateException("already read once");
-
-            if(dataFile!=null) {
-                dataFile.renameTo(f);
-            } else {
-
-            }
-        }
-        */
+        dataHead.moveTo(f);
     }
 
     /**
