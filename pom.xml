@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/trunk</connection>
     <developerConnection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/trunk</developerConnection>
-    <url>https://jax-ws-commons.dev.java.net/source/browse/mimepull/trunk</url>
+    <url>https://mimepull.dev.java.net/source/browse/mimepull/trunk</url>
   </scm>
 
    <issueManagement>
