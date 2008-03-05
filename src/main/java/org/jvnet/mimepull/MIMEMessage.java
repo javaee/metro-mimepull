@@ -41,6 +41,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * Represents MIME message. MIME message parsing is done lazily using a
@@ -49,6 +50,8 @@ import java.util.*;
  * @author Jitendra Kotamraju
  */
 public class MIMEMessage {
+    private static final Logger LOGGER = Logger.getLogger(MIMEMessage.class.getName());
+
     MIMEConfig config;
 
     private final InputStream in;
@@ -60,14 +63,15 @@ public class MIMEMessage {
     private int currentIndex;
 
     /**
-     * @see MIMEMessage(InputStream, String)
+     * @see MIMEMessage(InputStream, String, MIMEConfig)
      */
     public MIMEMessage(InputStream in, String boundary) {
         this(in, boundary, new MIMEConfig());
     }
 
     /**
-     * Creates a MIME message from the content's stream.
+     * Creates a MIME message from the content's stream. The content stream
+     * is closed when EOF is reached.
      *
      * @param in MIME message stream
      * @param boundary the separator for parts(pass it without --)
@@ -110,6 +114,7 @@ public class MIMEMessage {
      * @return attachemnt part
      */
     public MIMEPart getPart(int index) {
+        LOGGER.fine("index="+index);
         MIMEPart part = (index < partsList.size()) ? partsList.get(index) : null;
         if (parsed && part == null) {
             throw new MIMEParsingException("There is no "+index+" attachment part ");
@@ -119,6 +124,7 @@ public class MIMEMessage {
             part = new MIMEPart(this);
             partsList.add(index, part);
         }
+        LOGGER.fine("Got attachment at index="+index+" attachment="+part);
         return part;
     }
 
@@ -132,6 +138,7 @@ public class MIMEMessage {
      * @return attachemnt part
      */
     public MIMEPart getPart(String contentId) {
+        LOGGER.fine("Content-ID="+contentId);
         MIMEPart part = getDecodedCidPart(contentId);
         if (parsed && part == null) {
             throw new MIMEParsingException("There is no attachment part with Content-ID = "+contentId);
@@ -141,6 +148,7 @@ public class MIMEMessage {
             part = new MIMEPart(this, contentId);
             partsMap.put(contentId, part);
         }
+        LOGGER.fine("Got attachment for Content-ID="+contentId+" attachment="+part);
         return part;
     }
 
@@ -171,7 +179,6 @@ public class MIMEMessage {
     }
 
 
-
     /**
      * Parses the MIME message in a pull fashion.
      *
@@ -187,12 +194,15 @@ public class MIMEMessage {
 
         switch(event.getEventType()) {
             case START_MESSAGE :
+                LOGGER.fine("MIMEEvent="+MIMEEvent.EVENT_TYPE.START_MESSAGE);
                 break;
 
             case START_PART :
+                LOGGER.fine("MIMEEvent="+MIMEEvent.EVENT_TYPE.START_PART);
                 break;
 
             case HEADERS :
+                LOGGER.fine("MIMEEvent="+MIMEEvent.EVENT_TYPE.HEADERS);
                 MIMEEvent.Headers headers = (MIMEEvent.Headers)event;
                 InternetHeaders ih = headers.getHeaders();
                 List<String> cids = ih.getHeader("content-id");
@@ -219,17 +229,20 @@ public class MIMEMessage {
                 break;
 
             case CONTENT :
+                LOGGER.finer("MIMEEvent="+MIMEEvent.EVENT_TYPE.CONTENT);
                 MIMEEvent.Content content = (MIMEEvent.Content)event;
                 ByteBuffer buf = content.getData();
                 currentPart.addBody(buf);
                 break;
 
             case END_PART :
+                LOGGER.fine("MIMEEvent="+MIMEEvent.EVENT_TYPE.END_PART);
                 currentPart.doneParsing();
                 ++currentIndex;
                 break;
 
             case END_MESSAGE :
+                LOGGER.fine("MIMEEvent="+MIMEEvent.EVENT_TYPE.END_MESSAGE);
                 parsed = true;
                 try {
                     in.close();

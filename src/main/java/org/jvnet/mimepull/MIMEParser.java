@@ -37,8 +37,8 @@ package org.jvnet.mimepull;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.io.PushbackInputStream;
 import java.util.*;
+import java.util.logging.Logger;
 import java.nio.ByteBuffer;
 
 /**
@@ -60,6 +60,9 @@ import java.nio.ByteBuffer;
  * @author Jitendra Kotamraju
  */
 class MIMEParser implements Iterable<MIMEEvent> {
+    
+    private static final Logger LOGGER = Logger.getLogger(MIMEParser.class.getName());
+
     // Actually, the grammar doesn't support whitespace characters
     // after boundary. But the mail implementation checks for it.
     // We will only check for these many whitespace characters after boundary
@@ -91,6 +94,9 @@ class MIMEParser implements Iterable<MIMEEvent> {
     private int len;
     private boolean bol;        // beginning of the line
 
+    /*
+     * Parses the MIME content. At the EOF, it also closes input stream
+     */
     MIMEParser(InputStream in, String boundary, MIMEConfig config) {
         this.in = in;
         this.bndbytes = getBytes("--"+boundary);
@@ -123,28 +129,34 @@ class MIMEParser implements Iterable<MIMEEvent> {
         public MIMEEvent next() {
             switch(state) {
                 case START_MESSAGE :
+                    LOGGER.finer("MIMEParser state="+STATE.START_MESSAGE);
                     state = STATE.SKIP_PREAMBLE;
                     return MIMEEvent.START_MESSAGE;
 
                 case SKIP_PREAMBLE :
+                    LOGGER.finer("MIMEParser state="+STATE.SKIP_PREAMBLE);
                     skipPreamble();
                     // fall through
                 case START_PART :
+                    LOGGER.finer("MIMEParser state="+STATE.START_PART);
                     state = STATE.HEADERS;
                     return MIMEEvent.START_PART;
 
                 case HEADERS :
+                    LOGGER.finer("MIMEParser state="+STATE.HEADERS);
                     InternetHeaders ih = readHeaders();
                     state = STATE.BODY;
                     bol = true;
                     return new MIMEEvent.Headers(ih);
 
                 case BODY :
+                    LOGGER.finer("MIMEParser state="+STATE.BODY);
                     ByteBuffer buf = readBody();
                     bol = false;
                     return new MIMEEvent.Content(buf);
 
                 case END_PART :
+                    LOGGER.finer("MIMEParser state="+STATE.END_PART);
                     if (done) {
                         state = STATE.END_MESSAGE;
                     } else {
@@ -153,6 +165,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
                     return MIMEEvent.END_PART;
 
                 case END_MESSAGE :
+                    LOGGER.finer("MIMEParser state="+STATE.END_MESSAGE);
                     parsed = true;
                     return MIMEEvent.END_MESSAGE;
 
@@ -315,6 +328,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
             }
             adjustBuf(start+1, len-start-1);
         }
+        LOGGER.fine("Skipped the preamble. buffer len="+len);
     }
 
     private static byte[] getBytes(String s) {
@@ -407,6 +421,7 @@ NEXT:   while (off <= last) {
      * Fills the remaining buf to the full capacity
      */
     private void fillBuf() {
+        LOGGER.finer("Before fillBuf() buffer len="+len);
         assert !eof;
         while(len < buf.length) {
             int read;
@@ -417,24 +432,33 @@ NEXT:   while (off <= last) {
             }
             if (read == -1) {
                 eof = true;
+                try {
+                    LOGGER.fine("Closing the input stream.");
+                    in.close();
+                } catch(IOException ioe) {
+                    throw new MIMEParsingException(ioe);
+                }
                 break;
             } else {
                 len += read;
             }
         }
+        LOGGER.finer("After fillBuf() buffer len="+len);
     }
 
     private void doubleBuf() {
         byte[] temp = new byte[2*len];
         System.arraycopy(buf, 0, temp, 0, len);
         buf = temp;
-        fillBuf();
+        if (!eof) {
+            fillBuf();
+        }
     }
 
     class LineInputStream {
         private int offset;
 
-        /**
+        /*
          * Read a line containing only ASCII characters from the input
          * stream. A line is terminated by a CR or NL or CR-NL sequence.
          * A common error is a CR-CR-NL sequence, which will also terminate
