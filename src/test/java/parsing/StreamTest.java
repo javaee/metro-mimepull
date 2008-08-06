@@ -1,6 +1,7 @@
 package parsing;
 
 import junit.framework.TestCase;
+import junit.framework.AssertionFailedError;
 
 import java.io.InputStream;
 import java.io.IOException;
@@ -16,8 +17,35 @@ import org.jvnet.mimepull.MIMEPart;
 public class StreamTest extends TestCase {
 
     public void testOrderRead() throws Exception {
+        testOrderRead(123456789);
+    }
+
+    public void testPartSize9195() throws Exception {
+        testOrderRead(9195);
+    }
+
+    public void testPartSize9196() throws Exception {
+        testOrderRead(9196);
+    }
+
+    public void testAllPartSizes() throws Exception {
+        for (int size = 0; size < 50000; size++) {
+            if (size %1000 == 0) {
+                System.out.println("Trying for the size="+size);
+            }
+            try {
+                testOrderRead(size);
+            } catch (AssertionFailedError e) {
+                System.out.println("Failed for part length " + size + " bytes");
+                throw e;
+            }
+        }
+    }
+
+    
+
+    private void testOrderRead(int size) throws Exception {
         String boundary = "boundary";
-        int size = 123456789;
         MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);
 

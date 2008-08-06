@@ -209,6 +209,9 @@ class MIMEParser implements Iterable<MIMEEvent> {
             assert eof || len >= config.chunkSize;
             int chunkSize = eof ? len : config.chunkSize;
             if (eof) {
+                // Should we throw exception as there is no closing boundary ? But some impl
+                // like SAAJ do not throw excpetion.
+                // throw new MIMEParsingException("Reached EOF, but there is no closing MIME boundary.");
                 done = true;
                 state = STATE.END_PART;
             }
@@ -240,24 +243,26 @@ class MIMEParser implements Iterable<MIMEEvent> {
             ++lwsp;
         }
 
-        // Check for \n or \r\n
-        if (start+bl+lwsp < len && (buf[start+bl+lwsp] == '\n' || buf[start+bl+lwsp] == '\r') ) {
-            if (buf[start+bl+lwsp] == '\n') {
-                state = STATE.END_PART;
-                return adjustBuf(chunkLen, len-start-bl-lwsp-1);
-            } else if (start+bl+lwsp+1 < len && buf[start+bl+lwsp+1] == '\n') {
-                state = STATE.END_PART;
-                return adjustBuf(chunkLen, len-start-bl-lwsp-2);
-            }
+        // Check for \n or \r\n in boundary+whitespace+"\n" or boundary+whitespace+"\r\n"
+        if (start+bl+lwsp < len && buf[start+bl+lwsp] == '\n') {
+            state = STATE.END_PART;
+            return adjustBuf(chunkLen, len-start-bl-lwsp-1);
+        } else if (start+bl+lwsp+1 < len && buf[start+bl+lwsp] == '\r' && buf[start+bl+lwsp+1] == '\n') {
+            state = STATE.END_PART;
+            return adjustBuf(chunkLen, len-start-bl-lwsp-2);
+        } else if (start+bl+lwsp+1 < len) {
+            return adjustBuf(chunkLen+1, len-chunkLen-1);       // boundary string in a part data
+        } else if (eof) {
+            done = true;
+            state = STATE.END_PART;
+            return adjustBuf(chunkLen, 0);
+            // Should we throw exception as there is no closing boundary ? But some impl
+            // like SAAJ do not throw excpetion.
+            //throw new MIMEParsingException("Reached EOF, but there is no closing MIME boundary.");
         }
 
-        // Let us give chance to consume atleast NO_LWSP whitespace characters
-        if (lwsp > 0 && start > config.chunkSize) {
-            return adjustBuf(start, len-start);
-        }
-
-        // Not a proper boundary
-        return adjustBuf(start+1, len-start-1);
+        // Some more data needed to determine if it is indeed a proper boundary
+        return adjustBuf(chunkLen, len-chunkLen);
     }
 
     /**
