@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.jvnet</groupId>
   <artifactId>mimepull</artifactId>
-  <version>1.4</version>
+  <version>1.5-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>MIME streaming extension</name>
@@ -14,9 +14,9 @@
         <url>http://www.sun.com/</url>
   </organization>
   <scm>
-    <connection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/tags/mimepull-1.4</connection>
-    <developerConnection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/tags/mimepull-1.4</developerConnection>
-    <url>https://mimepull.dev.java.net/source/browse/mimepull/tags/mimepull-1.4</url>
+    <connection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/trunk</connection>
+    <developerConnection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/trunk</developerConnection>
+    <url>https://mimepull.dev.java.net/source/browse/mimepull/trunk</url>
   </scm>
 
    <issueManagement>
