@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.jvnet</groupId>
   <artifactId>mimepull</artifactId>
-  <version>1.4-SNAPSHOT</version>
+  <version>1.4</version>
   <packaging>jar</packaging>
 
   <name>MIME streaming extension</name>
@@ -14,9 +14,9 @@
         <url>http://www.sun.com/</url>
   </organization>
   <scm>
-    <connection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/trunk</connection>
-    <developerConnection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/trunk</developerConnection>
-    <url>https://mimepull.dev.java.net/source/browse/mimepull/trunk</url>
+    <connection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/tags/mimepull-1.4</connection>
+    <developerConnection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/tags/mimepull-1.4</developerConnection>
+    <url>https://mimepull.dev.java.net/source/browse/mimepull/tags/mimepull-1.4</url>
   </scm>
 
    <issueManagement>
@@ -55,27 +55,30 @@
   <repositories>
     <repository>
       <id>java.net</id>
-      <url>https://maven-repository.dev.java.net/nonav/repository</url>
+      <url>http://download.java.net/maven/1</url>
       <layout>legacy</layout>
     </repository>
     <repository>
       <id>java.net2</id>
-      <url>https://maven2-repository.dev.java.net/nonav/repository</url>
+      <url>http://download.java.net/maven/2</url>
     </repository>
   </repositories>
 
   <pluginRepositories>
     <pluginRepository>
-      <id>java.net2</id>
-      <url>https://maven2-repository.dev.java.net/nonav/repository</url>
+      <id>java.net2.plugin</id>
+      <url>http://download.java.net/maven/2</url>
     </pluginRepository>
+    <!--pluginRepository>
+      <id>felix.repo</id>
+      <url-->
   </pluginRepositories>
 
   <distributionManagement>
     <repository>
       <uniqueVersion>false</uniqueVersion>
       <id>java.net-maven2-repository</id>
-      <url>java-net:/maven2-repository/trunk/repository/</url>
+      <url>http://download.java.net/maven/2</url>
     </repository>
     <site>
       <id>mimepull-www</id>
@@ -120,6 +123,7 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.0.0</version>
         <executions>
           <execution>
             <id>bundle-manifest</id>
