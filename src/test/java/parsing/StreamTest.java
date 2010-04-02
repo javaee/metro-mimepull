@@ -4,8 +4,8 @@ import junit.framework.TestCase;
 import junit.framework.AssertionFailedError;
 
 import java.io.InputStream;
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.util.List;
 
 import org.jvnet.mimepull.MIMEConfig;
 import org.jvnet.mimepull.MIMEMessage;
@@ -42,12 +42,24 @@ public class StreamTest extends TestCase {
         }
     }
 
-    
+    public void testAllPartSizesForBufferedStream() throws Exception {
+        for (int size = 0; size < 50000; size++) {
+            if (size %1000 == 0) {
+                System.out.println("Trying for the size="+size);
+            }
+            try {
+                testOrderRead(size, getBufferedInputStream(size));
+            } catch (AssertionFailedError e) {
+                System.out.println("Failed for part length " + size + " bytes");
+                throw e;
+            }
+        }
+    }
 
-    private void testOrderRead(int size) throws Exception {
+    private void testOrderRead(int size, InputStream is) throws Exception {
         String boundary = "boundary";
         MIMEConfig config = new MIMEConfig();
-        MIMEMessage mm = new MIMEMessage(getInputStream(size), boundary , config);
+        MIMEMessage mm = new MIMEMessage(is, boundary , config);
 
         MIMEPart partA = mm.getPart("partA");
         verifyPart(partA.read(), 0, size);
@@ -60,6 +72,10 @@ public class StreamTest extends TestCase {
         MIMEPart partC = mm.getPart("partC");
         verifyPart(partC.read(), 2, size);
         partC.close();
+    }
+
+    private void testOrderRead(int size) throws Exception {
+        testOrderRead(size, getInputStream(size));
     }
 
     // Parts are accessed in order. The data is accessed using readOnce()
@@ -149,12 +165,12 @@ public class StreamTest extends TestCase {
                 }
             });
         }
-        for(int i=0; i < threads.length; i++) {
-            threads[i].start();
+        for (Thread thread : threads) {
+            thread.start();
         }
         verifyPart(partC.readOnce(), 2, size);
-        for(int i=0; i < threads.length; i++) {
-            threads[i].join();
+        for (Thread thread : threads) {
+            thread.join();
         }
 
         partA.close();
@@ -229,6 +245,10 @@ public class StreamTest extends TestCase {
             }
         };
 
+    }
+
+    private InputStream getBufferedInputStream(int size) {
+        return new BufferedInputStream(getInputStream(size));
     }
 
 }
