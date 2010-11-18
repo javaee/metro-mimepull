@@ -10,29 +10,28 @@
         Provides a streaming API to access attachments parts in a MIME message.
   </description>
   <organization>
-        <name>Sun Microsystems, Inc</name>
-        <url>http://www.sun.com/</url>
+    <name>Oracle Corporation</name>
+    <url>http://www.oracle.com/</url>
   </organization>
   <scm>
-    <connection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/trunk</connection>
-    <developerConnection>scm:svn:https://mimepull.dev.java.net/svn/mimepull/trunk</developerConnection>
-    <url>https://mimepull.dev.java.net/source/browse/mimepull/trunk</url>
+    <connection>scm:svn:https://svn.java.net/svn/mimepull~svn/trunk</connection>
+    <developerConnection>scm:svn:https://svn.java.net/svn/mimepull~svn/trunk</developerConnection>
+    <url>http://java.net/projects/mimepull/sources/svn/show/trunk</url>
   </scm>
-
-   <issueManagement>
-    <system>issueZilla</system>
-    <url>https://mimepull.dev.java.net/servlets/ProjectIssues</url>
+  <issueManagement>
+    <system>jira</system>
+    <url>http://java.net/jira/browse/mimepull</url>
   </issueManagement>
   <mailingLists>
     <mailingList>
       <name>mimepull Users List</name>
-      <post>users@mimepull.dev.java.net</post>
-      <archive>https://mimepull.dev.java.net/servlets/SummarizeList?listName=users</archive>
+      <archive>http://java.net/projects/mimepull/lists/users/archive</archive>
+      <post>users@mimepull.java.net</post>
     </mailingList>
     <mailingList>
-      <name>mimepull Dev List</name>
-      <post>dev@mimepull.dev.java.net</post>
-      <archive>https://mimepull.dev.java.net/servlets/SummarizeList?listName=dev</archive>
+      <name>mimepull Developers List</name>
+      <archive>http://java.net/projects/mimepull/lists/dev/archive</archive>
+      <post>dev@mimepull.java.net</post>
     </mailingList>
   </mailingLists>
   <licenses>
@@ -70,7 +69,7 @@
     <repository>
       <uniqueVersion>false</uniqueVersion>
       <id>java.net-maven2-repository</id>
-      <url>http://download.java.net/maven/2</url>
+      <url>java-net:/maven2-repository/trunk/repository</url>
     </repository>
     <site>
       <id>mimepull-www</id>
@@ -131,7 +130,7 @@
       <extension>
         <groupId>org.jvnet.wagon-svn</groupId>
         <artifactId>wagon-svn</artifactId>
-        <version>1.8</version>
+        <version>1.11</version>
       </extension>
     </extensions>
   </build>
