@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.jvnet</groupId>
   <artifactId>mimepull</artifactId>
-  <version>1.5</version>
+  <version>1.6-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>MIME streaming extension</name>
@@ -14,9 +14,9 @@
     <url>http://www.oracle.com/</url>
   </organization>
   <scm>
-    <connection>scm:svn:https://svn.java.net/svn/mimepull~svn/tags/mimepull-1.5</connection>
-    <developerConnection>scm:svn:https://svn.java.net/svn/mimepull~svn/tags/mimepull-1.5</developerConnection>
-    <url>http://java.net/projects/mimepull/sources/svn/show/tags/mimepull-1.5</url>
+    <connection>scm:svn:https://svn.java.net/svn/mimepull~svn/trunk</connection>
+    <developerConnection>scm:svn:https://svn.java.net/svn/mimepull~svn/trunk</developerConnection>
+    <url>http://java.net/projects/mimepull/sources/svn/show/trunk</url>
   </scm>
   <issueManagement>
     <system>jira</system>
