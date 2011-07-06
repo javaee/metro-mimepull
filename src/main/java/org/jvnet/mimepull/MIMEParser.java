@@ -214,11 +214,8 @@ class MIMEParser implements Iterable<MIMEEvent> {
             assert eof || len >= config.chunkSize;
             int chunkSize = eof ? len : config.chunkSize;
             if (eof) {
-                // Should we throw exception as there is no closing boundary ? But some impl
-                // like SAAJ do not throw excpetion.
-                // throw new MIMEParsingException("Reached EOF, but there is no closing MIME boundary.");
                 done = true;
-                state = STATE.END_PART;
+                throw new MIMEParsingException("Reached EOF, but there is no closing MIME boundary.");
             }
             return adjustBuf(chunkSize, len-chunkSize);
         }
@@ -259,11 +256,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
             return adjustBuf(chunkLen+1, len-chunkLen-1);       // boundary string in a part data
         } else if (eof) {
             done = true;
-            state = STATE.END_PART;
-            return adjustBuf(chunkLen, 0);
-            // Should we throw exception as there is no closing boundary ? But some impl
-            // like SAAJ do not throw excpetion.
-            //throw new MIMEParsingException("Reached EOF, but there is no closing MIME boundary.");
+            throw new MIMEParsingException("Reached EOF, but there is no closing MIME boundary.");
         }
 
         // Some more data needed to determine if it is indeed a proper boundary
