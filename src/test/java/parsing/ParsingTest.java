@@ -47,6 +47,7 @@ import java.util.List;
 
 import org.jvnet.mimepull.MIMEMessage;
 import org.jvnet.mimepull.MIMEConfig;
+import org.jvnet.mimepull.MIMEParsingException;
 import org.jvnet.mimepull.MIMEPart;
 
 import javax.imageio.ImageIO;
@@ -210,6 +211,46 @@ public class ParsingTest extends TestCase {
         assertEquals(2, parts.size());
         assertEquals("part1", parts.get(0).getContentId());
         assertEquals("part2", parts.get(1).getContentId());
+    }
+
+    public void testNoClosingBoundary() throws Exception { 
+ 
+        boolean gotException = false; 
+        try { 
+            String fileName = "../msg-no-closing-boundary.txt"; 
+            InputStream in = getClass().getResourceAsStream(fileName); 
+            assertNotNull("Failed to load test data from " + fileName, in); 
+            MIMEConfig config = new MIMEConfig(); 
+            String boundary = "----=_Part_4_910054940.1065629194743"; 
+            MIMEMessage mm = new MIMEMessage(in, boundary , config); 
+            mm.parseAll(); 
+        } catch (MIMEParsingException e) { 
+            gotException = true; 
+            String msg = e.getMessage(); 
+            assertNotNull(msg); 
+            assertTrue(msg.contains("no closing MIME boundary")); 
+        } 
+        assertTrue(gotException); 
+    } 
+ 
+    public void testInvalidClosingBoundary() throws Exception { 
+ 
+        boolean gotException = false; 
+        try { 
+            String fileName = "../msg-invalid-closing-boundary.txt"; 
+            InputStream in = getClass().getResourceAsStream(fileName); 
+            assertNotNull("Failed to load test data from " + fileName, in); 
+            MIMEConfig config = new MIMEConfig(); 
+            String boundary = "----=_Part_4_910054940.1065629194743"; 
+            MIMEMessage mm = new MIMEMessage(in, boundary , config); 
+            mm.parseAll(); 
+        } catch (MIMEParsingException e) { 
+            gotException = true; 
+            String msg = e.getMessage(); 
+            assertNotNull(msg); 
+            assertTrue(msg.contains("no closing MIME boundary")); 
+        } 
+        assertTrue(gotException); 
     }
 
 }
