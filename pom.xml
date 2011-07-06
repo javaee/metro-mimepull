@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.jvnet</groupId>
   <artifactId>mimepull</artifactId>
-  <version>1.7-SNAPSHOT</version>
+  <version>1.6-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>MIME streaming extension</name>
@@ -69,7 +69,7 @@
     <repository>
       <uniqueVersion>false</uniqueVersion>
       <id>java.net-maven2-repository</id>
-      <url>java-net:/maven2-repository/trunk/repository</url>
+      <url>java-net:/maven2-repository~svn/trunk/repository/</url>
     </repository>
     <site>
       <id>mimepull-www</id>
@@ -130,7 +130,7 @@
       <extension>
         <groupId>org.jvnet.wagon-svn</groupId>
         <artifactId>wagon-svn</artifactId>
-        <version>1.11</version>
+        <version>1.12</version>
       </extension>
     </extensions>
   </build>
