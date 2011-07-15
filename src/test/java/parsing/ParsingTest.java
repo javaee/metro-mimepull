@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997-2011 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -42,6 +42,7 @@ package parsing;
 
 import junit.framework.TestCase;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -135,6 +136,32 @@ public class ParsingTest extends TestCase {
         assertTrue(str.startsWith("<?xml version"));
         assertTrue(str.endsWith("</Envelope>\n"));
         part1.close();
+        }
+    }
+
+    // Test for MIMEPULL-3 issue.
+    public void testReadEOF() throws Exception {
+        InputStream in = getClass().getResourceAsStream("../message1.txt");
+        String boundary = "----=_Part_7_10584188.1123489648993";
+        MIMEConfig config = new MIMEConfig();
+        MIMEMessage mm = new MIMEMessage(in, boundary , config);
+        mm.parseAll();
+        List<MIMEPart> parts = mm.getAttachments();
+        for(MIMEPart part : parts) {
+            testInputStream(part.read());
+            testInputStream(part.readOnce());
+        }
+    }
+
+    private void testInputStream(InputStream is) throws IOException {
+        while(is.read() != -1);
+        assertEquals(-1, is.read());    // read() after EOF should return -1
+        is.close();
+        try {
+            is.read();
+            fail("read() after close() should throw IOException");
+        } catch(IOException ioe) {
+            // expected exception
         }
     }
 

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997-2011 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -200,6 +200,7 @@ final class DataHead {
         int offset;
         int len;
         byte[] buf;
+        boolean closed;
 
         public ReadMultiStream() {
             this.current = head;
@@ -230,12 +231,17 @@ final class DataHead {
 
         /**
          * Gets to the next chunk if we are done with the current one.
-         * @return
+         * @return true if any data available
+         * @throws IOException when i/o error
          */
-        private boolean fetch() {
-            if (current == null) {
-                throw new IllegalStateException("Stream already closed");
+        private boolean fetch() throws IOException {
+            if (closed) {
+                throw new IOException("Stream already closed");
             }
+            if (current == null) {
+                return false;
+            }
+       
             while(offset==len) {
                 while(!part.parsed && current.next == null) {
                     part.msg.makeProgress();
@@ -256,6 +262,7 @@ final class DataHead {
         public void close() throws IOException {
             super.close();
             current = null;
+            closed = true;
         }
     }
 
