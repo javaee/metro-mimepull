@@ -1,4 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <groupId>net.java</groupId>
+    <artifactId>jvnet-parent</artifactId>
+    <version>1</version>
+  </parent>
+
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.jvnet</groupId>
   <artifactId>mimepull</artifactId>
@@ -9,15 +15,40 @@
    <description>
         Provides a streaming API to access attachments parts in a MIME message.
   </description>
+  <url>http://mimepull.java.net</url>
+
   <organization>
     <name>Oracle Corporation</name>
     <url>http://www.oracle.com/</url>
   </organization>
+
+  <developers>
+    <developer>
+      <name>Jitendra Kotamraju</name>
+      <email>jitendra.kotamraju@oracle.com</email>
+      <organization>Oracle Corporation</organization>
+    </developer>
+  </developers>
+
+  <licenses>
+    <license>
+      <name>CDDL 1.1</name>
+      <url>https://glassfish.java.net/public/CDDL+GPL_1_1.html</url>
+      <distribution>repo</distribution>
+    </license>
+    <license>
+      <name>GPL2 w/ CPE</name>
+      <url>https://glassfish.java.net/public/CDDL+GPL_1_1.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
   <scm>
     <connection>scm:svn:https://svn.java.net/svn/mimepull~svn/trunk</connection>
     <developerConnection>scm:svn:https://svn.java.net/svn/mimepull~svn/trunk</developerConnection>
     <url>http://java.net/projects/mimepull/sources/svn/show/trunk</url>
   </scm>
+
   <issueManagement>
     <system>jira</system>
     <url>http://java.net/jira/browse/mimepull</url>
@@ -34,48 +65,6 @@
       <post>dev@mimepull.java.net</post>
     </mailingList>
   </mailingLists>
-  <licenses>
-    <license>
-        <name>
-            Dual license consisting of the CDDL v1.1 and GPL v2
-        </name>
-        <url>https://glassfish.dev.java.net/public/CDDL+GPL_1_1.html</url>
-        <distribution>repo</distribution>
-    </license>
-  </licenses>
-  <repositories>
-    <repository>
-      <id>java.net</id>
-      <url>http://download.java.net/maven/1</url>
-      <layout>legacy</layout>
-    </repository>
-    <repository>
-      <id>java.net2</id>
-      <url>http://download.java.net/maven/2</url>
-    </repository>
-  </repositories>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>java.net2.plugin</id>
-      <url>http://download.java.net/maven/2</url>
-    </pluginRepository>
-    <!--pluginRepository>
-      <id>felix.repo</id>
-      <url-->
-  </pluginRepositories>
-
-  <distributionManagement>
-    <repository>
-      <uniqueVersion>false</uniqueVersion>
-      <id>java.net-maven2-repository</id>
-      <url>java-net:/maven2-repository~svn/trunk/repository/</url>
-    </repository>
-    <site>
-      <id>mimepull-www</id>
-      <url>java-net:/mimepull/trunk/www/</url>
-    </site>
-  </distributionManagement>
 
   <build>
     <plugins>
@@ -125,14 +114,16 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <mavenExecutorId>forked-path</mavenExecutorId>
+          <useReleaseProfile>false</useReleaseProfile>
+          <arguments>${release.arguments}</arguments>
+        </configuration>
+      </plugin>
     </plugins>
-    <extensions>
-      <extension>
-        <groupId>org.jvnet.wagon-svn</groupId>
-        <artifactId>wagon-svn</artifactId>
-        <version>1.12</version>
-      </extension>
-    </extensions>
   </build>
   
   <dependencies>
