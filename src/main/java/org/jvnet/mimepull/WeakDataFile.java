@@ -47,6 +47,7 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.logging.Logger;
 
 /**
@@ -58,11 +59,34 @@ import java.util.logging.Logger;
 final class WeakDataFile extends WeakReference<DataFile> {
 
     private static final Logger LOGGER = Logger.getLogger(WeakDataFile.class.getName());
-    private static final int MAX_ITERATIONS = 2;
+    //private static final int MAX_ITERATIONS = 2;
     private static ReferenceQueue<DataFile> refQueue = new ReferenceQueue<DataFile>();
     private static List<WeakDataFile> refList = new ArrayList<WeakDataFile>();
     private final File file;
     private final RandomAccessFile raf;
+    private static boolean hasCleanUpExecutor = false;
+    static {
+        CleanUpExecutorFactory executorFactory = CleanUpExecutorFactory.newInstance();
+        if (executorFactory!=null) {
+            LOGGER.fine("Initializing clean up executor for MIMEPULL: "
+                    + executorFactory.getClass().getName());
+            Executor executor = executorFactory.getExecutor();
+            executor.execute(new Runnable() {
+                public void run() {
+                    WeakDataFile weak = null;
+                    while (true) {
+                        try {
+                            weak = (WeakDataFile) refQueue.remove();
+                            LOGGER.fine("Cleaning file = "+weak.file+" from reference queue.");            
+                            weak.close();
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                }
+            });
+            hasCleanUpExecutor = true;
+        }
+    }
 
     WeakDataFile(DataFile df, File file) {
         super(df, refQueue);
@@ -73,7 +97,9 @@ final class WeakDataFile extends WeakReference<DataFile> {
         } catch(IOException ioe) {
             throw new MIMEParsingException(ioe);
         }
-        drainRefQueueBounded();
+        if (!hasCleanUpExecutor) {
+            drainRefQueueBounded();
+        }
     }
 
     synchronized void read(long pointer, byte[] buf, int offset, int length ) {
@@ -119,14 +145,10 @@ final class WeakDataFile extends WeakReference<DataFile> {
     }
 
     static void drainRefQueueBounded() {
-        int iterations = 0;
-        WeakDataFile weak = (WeakDataFile) refQueue.poll();
-        while (weak != null && iterations < MAX_ITERATIONS) {
-            LOGGER.fine("Cleaning file = "+weak.file+" from reference queue.");
+        WeakDataFile weak = null;
+        while (( weak = (WeakDataFile) refQueue.poll()) != null ) {
+            LOGGER.fine("Cleaning file = "+weak.file+" from reference queue.");            
             weak.close();
-            ++iterations;
-            weak = (WeakDataFile) refQueue.poll();
         }
     }
-
 }

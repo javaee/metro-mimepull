@@ -92,6 +92,8 @@ final class MemoryData implements Data {
                 File tempFile = (dir == null)
                         ? File.createTempFile(prefix, suffix)
                         : File.createTempFile(prefix, suffix, dir);
+                // delete the temp file when VM exits as a last resort for file clean up
+                tempFile.deleteOnExit();
                 LOGGER.fine("Created temp file = "+tempFile);
                 dataHead.dataFile = new DataFile(tempFile);
             } catch(IOException ioe) {
