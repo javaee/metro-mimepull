@@ -39,14 +39,14 @@
  */
 package org.jvnet.mimepull;
 
-import com.sun.xml.internal.messaging.saaj.packaging.mime.MessagingException;
-import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.MimeUtility;
+import javax.mail.internet.MimeUtility;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.mail.MessagingException;
 
 /**
  * Represents an attachment part in a MIME message. MIME message parsing is done
