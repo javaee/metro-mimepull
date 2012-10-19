@@ -38,29 +38,42 @@
  * holder.
  */
 
-package org.jvnet.mimepull;
+package parsing;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import junit.framework.TestCase;
+
+import java.io.InputStream;
+import java.util.List;
+
+import org.jvnet.mimepull.MIMEMessage;
+import org.jvnet.mimepull.MIMEConfig;
+import org.jvnet.mimepull.MIMEPart;
 
 /**
- * {@link java.util.ArrayList} with the final keyword.
- *
- * <p>
- * This gives HotSpot a better hint that all methods can be inlined.
- *
- * @author Kohsuke Kawaguchi
+ * @author Martin Grebac
  */
-final class FinalArrayList<T> extends ArrayList<T> {
-    public FinalArrayList(int initialCapacity) {
-        super(initialCapacity);
+public class QuotedTest extends TestCase {
+
+    public void testMsg() throws Exception {
+        InputStream in = getClass().getResourceAsStream("../quoted.txt");
+        String boundary = "----=_Part_16_799571960.1350659465464";
+        MIMEConfig config = new MIMEConfig();
+        MIMEMessage mm = new MIMEMessage(in, boundary , config);
+        mm.parseAll();
+        
+        List<MIMEPart> parts = mm.getAttachments();
+        MIMEPart part1 = parts.get(1);
+
+        assertTrue(part1.getContentTransferEncoding().equals("quoted-printable"));
+        
+        InputStream is = part1.readOnce();
+        byte[] buf = new byte[8192];
+        int len = is.read(buf, 0, buf.length);        
+        String str = new  String(buf, 0, len);
+        
+        assertFalse(str.contains("=3D"));
+        
+        part1.close();
     }
 
-    public FinalArrayList() {
-    }
-
-    public FinalArrayList(Collection<? extends T> ts) {
-        super(ts);
-    }
 }
-

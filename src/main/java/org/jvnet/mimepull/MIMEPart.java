@@ -1,14 +1,14 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997-2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
  * and Distribution License("CDDL") (collectively, the "License").  You
  * may not use this file except in compliance with the License.  You can
  * obtain a copy of the License at
- * https://glassfish.dev.java.net/public/CDDL+GPL_1_1.html
+ * http://glassfish.java.net/public/CDDL+GPL_1_1.html
  * or packager/legal/LICENSE.txt.  See the License for the specific
  * language governing permissions and limitations under the License.
  *
@@ -37,20 +37,23 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-
 package org.jvnet.mimepull;
 
+import com.sun.xml.internal.messaging.saaj.packaging.mime.MessagingException;
+import com.sun.xml.internal.messaging.saaj.packaging.mime.internet.MimeUtility;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents an attachment part in a MIME message. MIME message parsing is done
  * lazily using a pull parser, so the part may not have all the data. {@link #read}
  * and {@link #readOnce} may trigger the actual parsing the message. In fact,
  * parsing of an attachment part may be triggered by calling {@link #read} methods
- * on some other attachemnt parts. All this happens behind the scenes so the
+ * on some other attachment parts. All this happens behind the scenes so the
  * application developer need not worry about these details.
  *
  * @author Jitendra Kotamraju
@@ -60,6 +63,8 @@ public class MIMEPart {
     private volatile InternetHeaders headers;
     private volatile String contentId;
     private String contentType;
+    private String contentTransferEncoding;
+
     volatile boolean parsed;    // part is parsed or not
     final MIMEMessage msg;
     private final DataHead dataHead;
@@ -84,7 +89,13 @@ public class MIMEPart {
      * @return data for the part's content
      */
     public InputStream read() {
-        return dataHead.read();
+        InputStream is = null;
+        try {
+            is = MimeUtility.decode(dataHead.read(), contentTransferEncoding);
+        } catch (MessagingException ex) { //ignore
+            Logger.getLogger(MIMEPart.class.getName()).log(Level.WARNING, null);
+        }
+        return is;
     }
 
     /**
@@ -95,7 +106,6 @@ public class MIMEPart {
     public void close() {
         dataHead.close();
     }
-    
 
     /**
      * Can get the attachment part's content only once. The content
@@ -110,7 +120,13 @@ public class MIMEPart {
      * @return data for the part's content
      */
     public InputStream readOnce() {
-        return dataHead.readOnce();
+        InputStream is = null;
+        try {
+            is = MimeUtility.decode(dataHead.readOnce(), contentTransferEncoding);
+        } catch (MessagingException ex) { //ignore
+            Logger.getLogger(MIMEPart.class.getName()).log(Level.WARNING, null);
+        }
+        return is;
     }
 
     public void moveTo(File f) {
@@ -129,6 +145,18 @@ public class MIMEPart {
         return contentId;
     }
 
+    /**
+     * Returns Content-Transfer-Encoding MIME header for this attachment part
+     *
+     * @return Content-Transfer-Encoding of the part
+     */
+    public String getContentTransferEncoding() {
+        if (contentTransferEncoding == null) {
+            getHeaders();
+        }
+        return contentTransferEncoding;
+    }
+    
     /**
      * Returns Content-Type MIME header for this attachment part
      *
@@ -186,6 +214,8 @@ public class MIMEPart {
         this.headers = headers;
         List<String> ct = getHeader("Content-Type");
         this.contentType = (ct == null) ? "application/octet-stream" : ct.get(0);
+        List<String> cte = getHeader("Content-Transfer-Encoding");
+        this.contentTransferEncoding = (cte == null) ? "binary" : cte.get(0);
     }
 
     /**
@@ -214,9 +244,17 @@ public class MIMEPart {
         this.contentId = cid;
     }
 
+    /**
+     * Callback to set Content-Transfer-Encoding for this part
+     * @param cte Content-Transfer-Encoding of the part
+     */
+    void setContentTransferEncoding(String cte) {
+        this.contentTransferEncoding = cte;
+    }
+    
     @Override
     public String toString() {
-        return "Part="+contentId;
+        return "Part="+contentId+":"+contentTransferEncoding;
     }
 
 }

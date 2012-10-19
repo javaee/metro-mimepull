@@ -1,14 +1,14 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997-2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
  * and Distribution License("CDDL") (collectively, the "License").  You
  * may not use this file except in compliance with the License.  You can
  * obtain a copy of the License at
- * https://glassfish.dev.java.net/public/CDDL+GPL_1_1.html
+ * http://glassfish.java.net/public/CDDL+GPL_1_1.html
  * or packager/legal/LICENSE.txt.  See the License for the specific
  * language governing permissions and limitations under the License.
  *
@@ -43,6 +43,7 @@ package org.jvnet.mimepull;
 import java.nio.ByteBuffer;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -65,14 +66,17 @@ final class MemoryData implements Data {
     }
 
     // size of the chunk given by the parser
+    @Override
     public int size() {
         return len;
     }
 
+    @Override
     public byte[] read() {
         return data;
     }
 
+    @Override
     public long writeTo(DataFile file) {
         return file.writeTo(data, 0, len);
     }
@@ -83,6 +87,7 @@ final class MemoryData implements Data {
      * @param buf
      * @return
      */
+    @Override
     public Data createNext(DataHead dataHead, ByteBuffer buf) {
         if (!config.isOnlyMemory() && dataHead.inMemory >= config.memoryThreshold) {
             try {
@@ -94,7 +99,7 @@ final class MemoryData implements Data {
                         : File.createTempFile(prefix, suffix, dir);
                 // delete the temp file when VM exits as a last resort for file clean up
                 tempFile.deleteOnExit();
-                LOGGER.fine("Created temp file = "+tempFile);
+                if (LOGGER.isLoggable(Level.FINE)) {LOGGER.log(Level.FINE, "Created temp file = {0}", tempFile);}
                 dataHead.dataFile = new DataFile(tempFile);
             } catch(IOException ioe) {
                 throw new MIMEParsingException(ioe);

@@ -1,14 +1,14 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997-2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
  * and Distribution License("CDDL") (collectively, the "License").  You
  * may not use this file except in compliance with the License.  You can
  * obtain a copy of the License at
- * https://glassfish.dev.java.net/public/CDDL+GPL_1_1.html
+ * http://glassfish.java.net/public/CDDL+GPL_1_1.html
  * or packager/legal/LICENSE.txt.  See the License for the specific
  * language governing permissions and limitations under the License.
  *
@@ -63,6 +63,7 @@ final class FileData implements Data {
         this.length = length;
     }
 
+    @Override
     public byte[] read() {
         byte[] buf = new byte[length];
         file.read(pointer, buf, 0, length);
@@ -72,10 +73,12 @@ final class FileData implements Data {
     /*
      * This shouldn't be called
      */
+    @Override
     public long writeTo(DataFile file) {
         throw new IllegalStateException();
     }
 
+    @Override
     public int size() {
         return length;
     }
@@ -83,6 +86,7 @@ final class FileData implements Data {
     /*
      * Always create FileData
      */
+    @Override
     public Data createNext(DataHead dataHead, ByteBuffer buf) {
         return new FileData(file, buf);
     }

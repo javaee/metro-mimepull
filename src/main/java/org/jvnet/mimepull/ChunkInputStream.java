@@ -1,14 +1,14 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997-2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
  * and Distribution License("CDDL") (collectively, the "License").  You
  * may not use this file except in compliance with the License.  You can
  * obtain a copy of the License at
- * https://glassfish.dev.java.net/public/CDDL+GPL_1_1.html
+ * http://glassfish.java.net/public/CDDL+GPL_1_1.html
  * or packager/legal/LICENSE.txt.  See the License for the specific
  * language governing permissions and limitations under the License.
  *
@@ -67,7 +67,9 @@ final class ChunkInputStream extends InputStream {
 
     @Override
     public int read(byte b[], int off, int sz) throws IOException {
-        if(!fetch())    return -1;
+        if (!fetch()) {
+            return -1;
+        }
 
         sz = Math.min(sz, len-offset);
         System.arraycopy(buf,offset,b,off,sz);
@@ -75,7 +77,9 @@ final class ChunkInputStream extends InputStream {
     }
 
     public int read() throws IOException {
-        if(!fetch()) return -1;
+        if (!fetch()) {
+            return -1;
+        }
         return (buf[offset++] & 0xff);
     }
 
@@ -103,6 +107,7 @@ final class ChunkInputStream extends InputStream {
         return true;
     }
 
+    @Override
     public void close() throws IOException {
         super.close();
         current = null;

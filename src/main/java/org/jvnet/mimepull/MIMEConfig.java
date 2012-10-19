@@ -1,14 +1,14 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997-2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
  * and Distribution License("CDDL") (collectively, the "License").  You
  * may not use this file except in compliance with the License.  You can
  * obtain a copy of the License at
- * https://glassfish.dev.java.net/public/CDDL+GPL_1_1.html
+ * http://glassfish.java.net/public/CDDL+GPL_1_1.html
  * or packager/legal/LICENSE.txt.  See the License for the specific
  * language governing permissions and limitations under the License.
  *
@@ -41,7 +41,8 @@
 package org.jvnet.mimepull;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Configuration for MIME message parsing and storing.
@@ -54,6 +55,8 @@ public class MIMEConfig {
     private static final long DEFAULT_MEMORY_THRESHOLD = 1048576L;
     private static final String DEFAULT_FILE_PREFIX = "MIME";
 
+    private static final Logger LOGGER = Logger.getLogger(MIMEConfig.class.getName());
+
     // Parses the entire message eagerly
     boolean parseEagerly;
 
@@ -63,14 +66,10 @@ public class MIMEConfig {
     // Maximum in-memory data per attachment
     long memoryThreshold;
 
-    // Do not store to disk
-    boolean onlyMemory;
-
     // temp Dir to store large files
     File tempDir;
     String prefix;
     String suffix;
-
 
     private MIMEConfig(boolean parseEagerly, int chunkSize,
                        long inMemoryThreshold, String dir, String prefix, String suffix) {
@@ -137,7 +136,7 @@ public class MIMEConfig {
     /**
      * @param dir
      */
-    public void setDir(String dir) {
+    public final void setDir(String dir) {
         if (tempDir == null && dir != null && !dir.equals("")) {
             tempDir = new File(dir);
         }
@@ -153,7 +152,12 @@ public class MIMEConfig {
                 File tempFile = (tempDir == null)
                         ? File.createTempFile(prefix, suffix)
                         : File.createTempFile(prefix, suffix, tempDir);
-                tempFile.delete();
+                boolean deleted = tempFile.delete();
+                if (!deleted) {
+                    if (LOGGER.isLoggable(Level.INFO)) {
+                        LOGGER.log(Level.INFO, "File {0} was not deleted", tempFile.getAbsolutePath());
+                    }
+                }
             } catch(Exception ioe) {
                 memoryThreshold = -1L;      // whole attachment will be in-memory
             }

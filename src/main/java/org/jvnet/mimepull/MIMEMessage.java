@@ -1,14 +1,14 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997-2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
  * and Distribution License("CDDL") (collectively, the "License").  You
  * may not use this file except in compliance with the License.  You can
  * obtain a copy of the License at
- * https://glassfish.dev.java.net/public/CDDL+GPL_1_1.html
+ * http://glassfish.java.net/public/CDDL+GPL_1_1.html
  * or packager/legal/LICENSE.txt.  See the License for the specific
  * language governing permissions and limitations under the License.
  *
@@ -37,7 +37,6 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-
 package org.jvnet.mimepull;
 
 import java.io.IOException;
@@ -46,6 +45,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -119,7 +119,7 @@ public class MIMEMessage {
      * @return attachemnt part
      */
     public MIMEPart getPart(int index) {
-        LOGGER.fine("index="+index);
+        LOGGER.log(Level.FINE, "index={0}", index);
         MIMEPart part = (index < partsList.size()) ? partsList.get(index) : null;
         if (parsed && part == null) {
             throw new MIMEParsingException("There is no "+index+" attachment part ");
@@ -129,7 +129,7 @@ public class MIMEMessage {
             part = new MIMEPart(this);
             partsList.add(index, part);
         }
-        LOGGER.fine("Got attachment at index="+index+" attachment="+part);
+        LOGGER.log(Level.FINE, "Got attachment at index={0} attachment={1}", new Object[]{index, part});
         return part;
     }
 
@@ -143,7 +143,7 @@ public class MIMEMessage {
      * @return attachemnt part
      */
     public MIMEPart getPart(String contentId) {
-        LOGGER.fine("Content-ID="+contentId);
+        LOGGER.log(Level.FINE, "Content-ID={0}", contentId);
         MIMEPart part = getDecodedCidPart(contentId);
         if (parsed && part == null) {
             throw new MIMEParsingException("There is no attachment part with Content-ID = "+contentId);
@@ -153,7 +153,7 @@ public class MIMEMessage {
             part = new MIMEPart(this, contentId);
             partsMap.put(contentId, part);
         }
-        LOGGER.fine("Got attachment for Content-ID="+contentId+" attachment="+part);
+        LOGGER.log(Level.FINE, "Got attachment for Content-ID={0} attachment={1}", new Object[]{contentId, part});
         return part;
     }
 
@@ -177,7 +177,7 @@ public class MIMEMessage {
     /**
      * Parses the whole MIME message eagerly
      */
-    public void parseAll() {
+    public final void parseAll() {
         while(makeProgress()) {
             // Nothing to do
         }
@@ -199,15 +199,15 @@ public class MIMEMessage {
 
         switch(event.getEventType()) {
             case START_MESSAGE :
-                LOGGER.fine("MIMEEvent="+MIMEEvent.EVENT_TYPE.START_MESSAGE);
+                LOGGER.log(Level.FINE, "MIMEEvent={0}", MIMEEvent.EVENT_TYPE.START_MESSAGE);
                 break;
 
             case START_PART :
-                LOGGER.fine("MIMEEvent="+MIMEEvent.EVENT_TYPE.START_PART);
+                LOGGER.log(Level.FINE, "MIMEEvent={0}", MIMEEvent.EVENT_TYPE.START_PART);
                 break;
 
             case HEADERS :
-                LOGGER.fine("MIMEEvent="+MIMEEvent.EVENT_TYPE.HEADERS);
+                LOGGER.log(Level.FINE, "MIMEEvent={0}", MIMEEvent.EVENT_TYPE.HEADERS);
                 MIMEEvent.Headers headers = (MIMEEvent.Headers)event;
                 InternetHeaders ih = headers.getHeaders();
                 List<String> cids = ih.getHeader("content-id");
@@ -234,20 +234,20 @@ public class MIMEMessage {
                 break;
 
             case CONTENT :
-                LOGGER.finer("MIMEEvent="+MIMEEvent.EVENT_TYPE.CONTENT);
+                LOGGER.log(Level.FINER, "MIMEEvent={0}", MIMEEvent.EVENT_TYPE.CONTENT);
                 MIMEEvent.Content content = (MIMEEvent.Content)event;
                 ByteBuffer buf = content.getData();
                 currentPart.addBody(buf);
                 break;
 
             case END_PART :
-                LOGGER.fine("MIMEEvent="+MIMEEvent.EVENT_TYPE.END_PART);
+                LOGGER.log(Level.FINE, "MIMEEvent={0}", MIMEEvent.EVENT_TYPE.END_PART);
                 currentPart.doneParsing();
                 ++currentIndex;
                 break;
 
             case END_MESSAGE :
-                LOGGER.fine("MIMEEvent="+MIMEEvent.EVENT_TYPE.END_MESSAGE);
+                LOGGER.log(Level.FINE, "MIMEEvent={0}", MIMEEvent.EVENT_TYPE.END_MESSAGE);
                 parsed = true;
                 try {
                     in.close();
