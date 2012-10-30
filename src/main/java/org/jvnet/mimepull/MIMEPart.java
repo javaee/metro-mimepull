@@ -39,14 +39,12 @@
  */
 package org.jvnet.mimepull;
 
-import javax.mail.internet.MimeUtility;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.mail.MessagingException;
 
 /**
  * Represents an attachment part in a MIME message. MIME message parsing is done
@@ -56,10 +54,12 @@ import javax.mail.MessagingException;
  * on some other attachment parts. All this happens behind the scenes so the
  * application developer need not worry about these details.
  *
- * @author Jitendra Kotamraju
+ * @author Jitendra Kotamraju, Martin Grebac
  */
 public class MIMEPart {
 
+    private static final Logger LOGGER = Logger.getLogger(MIMEPart.class.getName());
+    
     private volatile InternetHeaders headers;
     private volatile String contentId;
     private String contentType;
@@ -92,8 +92,10 @@ public class MIMEPart {
         InputStream is = null;
         try {
             is = MimeUtility.decode(dataHead.read(), contentTransferEncoding);
-        } catch (MessagingException ex) { //ignore
-            Logger.getLogger(MIMEPart.class.getName()).log(Level.WARNING, null);
+        } catch (DecodingException ex) { //ignore
+            if (LOGGER.isLoggable(Level.WARNING)) {
+                LOGGER.log(Level.WARNING, null, ex);
+            }
         }
         return is;
     }
@@ -123,8 +125,10 @@ public class MIMEPart {
         InputStream is = null;
         try {
             is = MimeUtility.decode(dataHead.readOnce(), contentTransferEncoding);
-        } catch (MessagingException ex) { //ignore
-            Logger.getLogger(MIMEPart.class.getName()).log(Level.WARNING, null);
+        } catch (DecodingException ex) { //ignore
+            if (LOGGER.isLoggable(Level.WARNING)) {
+                LOGGER.log(Level.WARNING, null, ex);
+            }
         }
         return is;
     }
