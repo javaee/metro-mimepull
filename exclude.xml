@@ -51,4 +51,12 @@
         <Bug pattern="SF_SWITCH_FALLTHROUGH"/>
     </Match>
     
+    <!--
+    Safer implementation with null check, especially when changes are made
+    -->
+    <Match>
+        <Class name="org.jvnet.mimepull.DataHead"/>
+        <Bug pattern="RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"/>
+    </Match>
+    
 </FindBugsFilter>
