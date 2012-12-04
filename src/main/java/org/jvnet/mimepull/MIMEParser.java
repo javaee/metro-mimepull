@@ -69,6 +69,8 @@ class MIMEParser implements Iterable<MIMEEvent> {
     
     private static final Logger LOGGER = Logger.getLogger(MIMEParser.class.getName());
 
+    private static final String HEADER_ENCODING = "ISO8859-1";
+    
     // Actually, the grammar doesn't support whitespace characters
     // after boundary. But the mail implementation checks for it.
     // We will only check for these many whitespace characters after boundary
@@ -505,7 +507,7 @@ NEXT:   while (off <= last) {
                 return null;
             }
 
-            String hdr = new String(buf, offset, hdrLen);
+            String hdr = new String(buf, offset, hdrLen, HEADER_ENCODING);
             offset += hdrLen+lwsp;
             return hdr;
         }
