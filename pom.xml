@@ -170,11 +170,46 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.1</version>
+                <configuration>
+                    <getRevisionOnlyOnce>true</getRevisionOnlyOnce>
+                    <timestampFormat>{0,date,yyyy-MM-dd'T'HH:mm:ssZ}</timestampFormat>
+                    <providerImplementations>
+                        <svn>javasvn</svn>
+                    </providerImplementations>
+                    <getRevisionOnlyOnce>true</getRevisionOnlyOnce>
+                    <revisionOnScmFailure>false</revisionOnScmFailure>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.tmatesoft.svnkit</groupId>
+                        <artifactId>svnkit</artifactId>
+                        <version>1.7.4-v1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>                
+            <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
                     <archive>  
                         <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>                        
+                        <manifestEntries>
+                            <Implementation-Build-Id>${scmBranch}-${buildNumber}, ${timestamp}</Implementation-Build-Id>
+                        </manifestEntries>
                     </archive> 
                 </configuration>
             </plugin>  
@@ -229,7 +264,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <!-- The Base URL of Nexus instance where we want to stage -->
-                    <nexusUrl>https://maven.java.net/content/repositories/staging/</nexusUrl>
+                    <nexusUrl>https://maven.java.net/content/repositories/</nexusUrl>
                     <!-- The server "id" element from settings to use authentication from -->
                     <serverId>jvnet-nexus-staging</serverId>
                 </configuration>
