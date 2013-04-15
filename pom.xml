@@ -44,7 +44,7 @@
     <parent>
         <groupId>net.java</groupId>
         <artifactId>jvnet-parent</artifactId>
-        <version>3</version>
+        <version>4</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -268,18 +268,6 @@
                 <version>2.7</version>
                 <configuration>
                     <retryFailedDeploymentCount>10</retryFailedDeploymentCount>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.1</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <!-- The Base URL of Nexus instance where we want to stage -->
-                    <nexusUrl>https://maven.java.net/content/repositories/</nexusUrl>
-                    <!-- The server "id" element from settings to use authentication from -->
-                    <serverId>jvnet-nexus-staging</serverId>
                 </configuration>
             </plugin>
         </plugins>
