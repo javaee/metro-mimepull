@@ -40,7 +40,7 @@
 
 package org.jvnet.mimepull;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledExecutorService;
 
 public abstract class CleanUpExecutorFactory {
     private static final String DEFAULT_PROPERTY_NAME = CleanUpExecutorFactory.class
@@ -57,5 +57,5 @@ public abstract class CleanUpExecutorFactory {
         }
     }
 
-    public abstract Executor getExecutor();
+    public abstract ScheduledExecutorService getScheduledExecutorService();
 }
