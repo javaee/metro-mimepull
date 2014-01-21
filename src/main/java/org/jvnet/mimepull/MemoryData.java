@@ -1,14 +1,14 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 1997-2010 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
  * and Distribution License("CDDL") (collectively, the "License").  You
  * may not use this file except in compliance with the License.  You can
  * obtain a copy of the License at
- * https://glassfish.dev.java.net/public/CDDL+GPL_1_1.html
+ * http://glassfish.java.net/public/CDDL+GPL_1_1.html
  * or packager/legal/LICENSE.txt.  See the License for the specific
  * language governing permissions and limitations under the License.
  *
@@ -43,6 +43,7 @@ package org.jvnet.mimepull;
 import java.nio.ByteBuffer;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -65,41 +66,45 @@ final class MemoryData implements Data {
     }
 
     // size of the chunk given by the parser
+    @Override
     public int size() {
         return len;
     }
 
+    @Override
     public byte[] read() {
         return data;
     }
 
+    @Override
     public long writeTo(DataFile file) {
         return file.writeTo(data, 0, len);
     }
 
     /**
-     * 
      * @param dataHead
      * @param buf
      * @return
      */
+    @Override
     public Data createNext(DataHead dataHead, ByteBuffer buf) {
         if (!config.isOnlyMemory() && dataHead.inMemory >= config.memoryThreshold) {
             try {
                 String prefix = config.getTempFilePrefix();
                 String suffix = config.getTempFileSuffix();
-                File dir = config.getTempDir();
-                File tempFile = (dir == null)
-                        ? File.createTempFile(prefix, suffix)
-                        : File.createTempFile(prefix, suffix, dir);
-                LOGGER.fine("Created temp file = "+tempFile);
+                File tempFile = TempFiles.createTempFile(prefix, suffix, config.getTempDir());
+                // delete the temp file when VM exits as a last resort for file clean up
+                tempFile.deleteOnExit();
+                if (LOGGER.isLoggable(Level.FINE)) {
+                    LOGGER.log(Level.FINE, "Created temp file = {0}", tempFile);
+                }
                 dataHead.dataFile = new DataFile(tempFile);
-            } catch(IOException ioe) {
+            } catch (IOException ioe) {
                 throw new MIMEParsingException(ioe);
             }
 
             if (dataHead.head != null) {
-                for(Chunk c=dataHead.head; c != null; c=c.next) {
+                for (Chunk c = dataHead.head; c != null; c = c.next) {
                     long pointer = c.data.writeTo(dataHead.dataFile);
                     c.data = new FileData(dataHead.dataFile, pointer, len);
                 }
@@ -109,4 +114,5 @@ final class MemoryData implements Data {
             return new MemoryData(buf, config);
         }
     }
+
 }
