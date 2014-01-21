@@ -99,9 +99,6 @@ final class MemoryData implements Data {
                 if (LOGGER.isLoggable(Level.FINE)) {
                     LOGGER.log(Level.FINE, "Created temp file = {0}", tempFile);
                 }
-                // delete the temp file when VM exits as a last resort for file clean up
-                tempFile.deleteOnExit();
-                if (LOGGER.isLoggable(Level.FINE)) {LOGGER.log(Level.FINE, "Created temp file = {0}", tempFile);}
                 dataHead.dataFile = new DataFile(tempFile);
             } catch (IOException ioe) {
                 throw new MIMEParsingException(ioe);
