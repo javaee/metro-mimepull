@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 1997-2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,24 +38,22 @@
  * holder.
  */
 
-package parsing;
+package org.jvnet.mimepull;
 
 import junit.framework.TestCase;
 
 import java.io.InputStream;
 import java.util.List;
 
-import org.jvnet.mimepull.MIMEMessage;
-import org.jvnet.mimepull.MIMEConfig;
-import org.jvnet.mimepull.MIMEPart;
-
 /**
  * @author Martin Grebac
  */
 public class QuotedTest extends TestCase {
 
+    private static final String PATH = "../../../";
+
     public void testMsg() throws Exception {
-        InputStream in = getClass().getResourceAsStream("../quoted.txt");
+        InputStream in = getClass().getResourceAsStream(PATH + "quoted.txt");
         String boundary = "----=_Part_16_799571960.1350659465464";
         MIMEConfig config = new MIMEConfig();
         MIMEMessage mm = new MIMEMessage(in, boundary , config);
