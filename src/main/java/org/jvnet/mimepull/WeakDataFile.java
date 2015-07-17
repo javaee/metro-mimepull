@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 1997-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,6 +40,9 @@
 
 package org.jvnet.mimepull;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.concurrent.TimeUnit;
 
 import java.io.File;
@@ -148,10 +151,12 @@ final class WeakDataFile extends WeakReference<DataFile> {
         refList.remove(this);
         try {
             raf.close();
-            boolean renamed = file.renameTo(f);
+            Path target = Files.move(file.toPath(), f.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            boolean renamed = f.toPath().equals(target);
             if (!renamed) {
                 if (LOGGER.isLoggable(Level.INFO)) {
-                    LOGGER.log(Level.INFO, "File {0} was not moved to {1}", new Object[] {file.getAbsolutePath(), f.getAbsolutePath()});
+                    throw new MIMEParsingException("File " + file.getAbsolutePath() +
+                            " was not moved to " + f.getAbsolutePath());
                 }
             }
         } catch(IOException ioe) {
