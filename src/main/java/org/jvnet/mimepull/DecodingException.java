@@ -54,9 +54,12 @@ import java.io.IOException;
 public final class DecodingException extends IOException {
 
     /**
-     * Constructor
+     * Constructs a {@code DecodingException} with the specified detail message.
+     *
+     * @param message
+     *        The detail message
      */
-    public DecodingException(String s) {
-	super(s);
+    public DecodingException(String message) {
+	    super(message);
     }
 }

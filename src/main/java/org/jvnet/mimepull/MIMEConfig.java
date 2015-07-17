@@ -134,11 +134,12 @@ public class MIMEConfig {
     }
 
     /**
-     * @param dir
+     * @param directory
+     *          temp directory
      */
-    public final void setDir(String dir) {
-        if (tempDir == null && dir != null && !dir.equals("")) {
-            tempDir = new File(dir);
+    public final void setDir(String directory) {
+        if (tempDir == null && directory != null && !directory.equals("")) {
+            tempDir = new File(directory);
         }
     }
 
