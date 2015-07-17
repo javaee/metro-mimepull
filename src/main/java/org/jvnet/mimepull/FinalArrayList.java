@@ -52,6 +52,9 @@ import java.util.Collection;
  * @author Kohsuke Kawaguchi
  */
 final class FinalArrayList<T> extends ArrayList<T> {
+
+    private static final long serialVersionUID = 7996571518730043311L;
+
     public FinalArrayList(int initialCapacity) {
         super(initialCapacity);
     }

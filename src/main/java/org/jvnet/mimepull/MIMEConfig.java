@@ -158,7 +158,9 @@ public class MIMEConfig {
                         LOGGER.log(Level.INFO, "File {0} was not deleted", tempFile.getAbsolutePath());
                     }
                 }
-            } catch(Exception ioe) {
+            } catch(RuntimeException e) {
+                memoryThreshold = -1L;      // whole attachment will be in-memory
+            } catch(Exception e) {
                 memoryThreshold = -1L;      // whole attachment will be in-memory
             }
         }

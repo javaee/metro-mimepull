@@ -138,6 +138,11 @@ class MIMEParser implements Iterable<MIMEEvent> {
 
         @Override
         public MIMEEvent next() {
+
+            if (parsed) {
+                throw new NoSuchElementException();
+            }
+
             switch(state) {
                 case START_MESSAGE :
                     if (LOGGER.isLoggable(Level.FINER)) {LOGGER.log(Level.FINER, "MIMEParser state={0}", STATE.START_MESSAGE);}

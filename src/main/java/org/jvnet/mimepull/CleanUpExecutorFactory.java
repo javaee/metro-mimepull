@@ -52,6 +52,8 @@ public abstract class CleanUpExecutorFactory {
     public static CleanUpExecutorFactory newInstance() {
         try {
             return (CleanUpExecutorFactory) FactoryFinder.find(DEFAULT_PROPERTY_NAME);
+        } catch (RuntimeException e) {
+            return null;
         } catch (Exception e) {
             return null;
         }
