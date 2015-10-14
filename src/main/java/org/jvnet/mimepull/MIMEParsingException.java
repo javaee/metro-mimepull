@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 1997-2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -86,13 +86,14 @@ public class MIMEParsingException extends java.lang.RuntimeException {
 
     /**
      * Constructs a new WebServiceException with the specified cause
-     * and a detail message of <tt>(cause==null ? null :
-     * cause.toString())</tt> (which typically contains the
-     * class and detail message of <tt>cause</tt>).
+     * and a detail message of
+     * {@code (cause==null ? null : cause.toString())}
+     * (which typically contains the
+     * class and detail message of {@code cause}).
      *
      * @param cause The cause which is saved for the later
      *              retrieval throw by the getCause method.
-     *              (A <tt>null</tt> value is permitted, and
+     *              (A {@code null} value is permitted, and
      *              indicates that the cause is nonexistent or
      *              unknown.)
      */
