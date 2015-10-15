@@ -50,7 +50,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jvnet.mimepull</groupId>
     <artifactId>mimepull</artifactId>
-    <version>1.9.7</version>
+    <version>1.9.8-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>MIME streaming extension</name>
@@ -91,9 +91,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:svn:https://svn.java.net/svn/mimepull~svn/tags/mimepull-1.9.7</connection>
-        <developerConnection>scm:svn:https://svn.java.net/svn/mimepull~svn/tags/mimepull-1.9.7</developerConnection>
-        <url>http://java.net/projects/mimepull/sources/svn/show/tags/mimepull-1.9.7</url>
+        <connection>scm:svn:https://svn.java.net/svn/mimepull~svn/trunk</connection>
+        <developerConnection>scm:svn:https://svn.java.net/svn/mimepull~svn/trunk</developerConnection>
+        <url>http://java.net/projects/mimepull/sources/svn/show/trunk</url>
     </scm>
 
     <issueManagement>
