@@ -1,0 +1,16 @@
+theme: jekyll-theme-architect
+
+title: [metro-mimepull]
+description: [Pull API for parsing MIME messages]
+
+# sidebar links url
+links:
+  source: https://github.com/javaee/metro-mimepull
+  #download:
+  #mailinglist:
+  #javadocs:
+  #docs:
+  #faq:
+  #mailinglist:
+  #hide_issuetracker: true #set explicitly to 'true' if you don't want to have the issue tracker link displayed
+
