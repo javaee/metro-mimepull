@@ -86,9 +86,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:svn:https://svn.java.net/svn/mimepull~svn/trunk</connection>
-        <developerConnection>scm:svn:https://svn.java.net/svn/mimepull~svn/trunk</developerConnection>
-        <url>http://java.net/projects/mimepull/sources/svn/show/trunk</url>
+        <connection>scm:git:ssh://git@github.com/javaee/metro-mimepull.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/javaee/metro-mimepull.git</developerConnection>
+        <url>https://github.com/javaee/metro-mimepull</url>
     </scm>
 
     <issueManagement>
