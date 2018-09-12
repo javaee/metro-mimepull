@@ -50,7 +50,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jvnet.mimepull</groupId>
     <artifactId>mimepull</artifactId>
-    <version>1.9.10-SNAPSHOT</version>
+    <version>1.9.10</version>
     <packaging>jar</packaging>
 
     <name>MIME streaming extension</name>
@@ -89,7 +89,7 @@
         <connection>scm:git:ssh://git@github.com/javaee/metro-mimepull.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/javaee/metro-mimepull.git</developerConnection>
         <url>https://github.com/javaee/metro-mimepull</url>
-      <tag>HEAD</tag>
+      <tag>1.9.10</tag>
   </scm>
 
     <issueManagement>
@@ -333,7 +333,7 @@
                         </goals>
                         <configuration>
                             <instructions>
-                                <Require-Capability>osgi.ee;filter:="(&amp;(osgi.ee=JavaSE)(version>=1.7))"</Require-Capability>
+                                <Require-Capability>osgi.ee;filter:="(&amp;(osgi.ee=JavaSE)(version&gt;=1.7))"</Require-Capability>
                             </instructions>
                         </configuration>
                     </execution>
