@@ -70,7 +70,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
     private static final Logger LOGGER = Logger.getLogger(MIMEParser.class.getName());
 
     private static final String HEADER_ENCODING = "ISO8859-1";
-    
+
     // Actually, the grammar doesn't support whitespace characters
     // after boundary. But the mail implementation checks for it.
     // We will only check for these many whitespace characters after boundary
@@ -101,6 +101,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
     private byte[] buf;
     private int len;
     private boolean bol;        // beginning of the line
+    private String headerEncoding;
 
     /*
      * Parses the MIME content. At the EOF, it also closes input stream
@@ -111,6 +112,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
         bl = bndbytes.length;
         this.config = config;
         gss = new int[bl];
+        this.headerEncoding = config.headerEncoding != null ? config.headerEncoding : HEADER_ENCODING;
         compileBoundaryPattern();
 
         // \r\n + boundary + "--\r\n" + lots of LWSP
@@ -357,7 +359,7 @@ class MIMEParser implements Iterable<MIMEEvent> {
         return bytes;
     }
 
-        /**
+    /**
      * Boyer-Moore search method. Copied from java.util.regex.Pattern.java
      *
      * Pre calculates arrays needed to generate the bad character
@@ -512,7 +514,7 @@ NEXT:   while (off <= last) {
                 return null;
             }
 
-            String hdr = new String(buf, offset, hdrLen, HEADER_ENCODING);
+            String hdr = new String(buf, offset, hdrLen, headerEncoding);
             offset += hdrLen+lwsp;
             return hdr;
         }

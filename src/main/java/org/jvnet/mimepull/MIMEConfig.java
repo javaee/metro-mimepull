@@ -70,20 +70,22 @@ public class MIMEConfig {
     File tempDir;
     String prefix;
     String suffix;
+    String headerEncoding;
 
-    private MIMEConfig(boolean parseEagerly, int chunkSize,
-                       long inMemoryThreshold, String dir, String prefix, String suffix) {
+    private MIMEConfig(boolean parseEagerly, int chunkSize, long inMemoryThreshold,
+                       String dir, String prefix, String suffix, String headerEncoding) {
         this.parseEagerly = parseEagerly;
         this.chunkSize = chunkSize;
         this.memoryThreshold = inMemoryThreshold;
         this.prefix = prefix;
         this.suffix = suffix;
+        this.headerEncoding = headerEncoding;
         setDir(dir);
     }
 
     public MIMEConfig() {
         this(false, DEFAULT_CHUNK_SIZE, DEFAULT_MEMORY_THRESHOLD, null,
-                DEFAULT_FILE_PREFIX, null);
+                DEFAULT_FILE_PREFIX, null, null);
     }
 
     boolean isParseEagerly() {
@@ -131,6 +133,10 @@ public class MIMEConfig {
 
     String getTempFileSuffix() {
         return suffix;
+    }
+
+    public void setHeaderEncoding(String headerEncoding) {
+        this.headerEncoding = headerEncoding;
     }
 
     /**
